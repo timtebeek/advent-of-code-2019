@@ -1,10 +1,21 @@
 package com.github.timtebeek.day7.amplify;
 
-import java.util.Deque;
+import java.util.Iterator;
+import java.util.stream.IntStream;
 
 public class AmplifyThrust {
 
-	static int execute(Deque<Integer> inputs, int[] memory) {
+	static int executeInSequence(Iterator<Integer> phases, int[] memory) {
+		int signal = 0;
+		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
+		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
+		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
+		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
+		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
+		return signal;
+	}
+
+	static int execute(Iterator<Integer> inputs, int[] memory) {
 		int pointer = 0;
 		String instruction;
 		while (true) {
@@ -29,7 +40,7 @@ public class AmplifyThrust {
 			} else if (instruction.endsWith("3")) {
 				// Store input in memory
 				int targetAddress = memory[pointer + 1];
-				memory[targetAddress] = inputs.pop();
+				memory[targetAddress] = inputs.next();
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("4")) {
 				// Print value at position
