@@ -1,9 +1,19 @@
 package com.github.timtebeek.day7.amplify;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.IntStream;
 
+import com.google.common.collect.Collections2;
+
 public class AmplifyThrust {
+	static long findOptiomalPermutation(int[] memory) {
+		Collection<List<Integer>> permutations = Collections2.permutations(List.of(0, 1, 2, 3, 4));
+		return permutations.stream().mapToLong(perm -> executeInSequence(perm.iterator(), memory)).max().getAsLong();
+	}
+
+
 
 	static int executeInSequence(Iterator<Integer> phases, int[] memory) {
 		int signal = 0;
