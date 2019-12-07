@@ -22,7 +22,7 @@ public class ThermalDiagnostics {
 			instruction = String.valueOf(memory[pointer]);
 			final int numberOfParameters;
 
-			log.info("{}", memory);
+//			printMemory(pointer, memory);
 
 			// Execute instructions
 			if (instruction.endsWith("1")) {
@@ -51,9 +51,10 @@ public class ThermalDiagnostics {
 				memory[targetAddress] = Integer.parseInt(input);
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("4")) {
-				int sourceAddress = memory[pointer + 1];
+				// Print value at position
+				int value = readParameterValue(instruction, 1, pointer, memory);
 				log.debug("{}: Printing position {} + 1", instruction, pointer);
-				System.out.println("> " + sourceAddress);
+				System.out.println("> " + value);
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("99")) {
 				System.out.println("Goodbye!");
@@ -66,6 +67,18 @@ public class ThermalDiagnostics {
 			pointer += (1 + numberOfParameters);
 		}
 		return memory[0];
+	}
+
+	private static void printMemory(int pointer, int[] memory) {
+		for (int i = 0; i < 250; i += 10) {
+			for (int j = 0; j < 10; j++) {
+				if (i + j == pointer) {
+					System.out.print('*');
+				}
+				System.out.print(String.format("%1$5s, ", memory[i + j]));
+			}
+			System.out.println("- " + i);
+		}
 	}
 
 	static int readParameterValue(String instruction, int parameter, int pointer, int[] memory) {
