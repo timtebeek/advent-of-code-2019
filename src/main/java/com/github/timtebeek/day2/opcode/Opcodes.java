@@ -25,23 +25,30 @@ class Opcodes {
 		return execute(opcodes);
 	}
 
-	static int execute(int[] opcodes) {
-		int position = 0;
-		// Run calculations
-		while (opcodes[position] != 99) {
-			if (opcodes[position] == 1) {
-				opcodes[opcodes[position + 3]] = opcodes[opcodes[position + 1]] + opcodes[opcodes[position + 2]];
-			} else if (opcodes[position] == 2) {
-				opcodes[opcodes[position + 3]] = opcodes[opcodes[position + 1]] * opcodes[opcodes[position + 2]];
+	static int execute(int[] memory) {
+		int pointer = 0;
+		int instruction = memory[pointer];
+		do {
+			// Extract instructions, values and target
+			int leftValue = memory[memory[pointer + 1]];
+			int rightValue = memory[memory[pointer + 2]];
+			int targetAddress = memory[pointer + 3];
+
+			// Execute instructions
+			if (instruction == 1) {
+				memory[targetAddress] = leftValue + rightValue;
+			} else if (instruction == 2) {
+				memory[targetAddress] = leftValue * rightValue;
 			} else {
-				throw new IllegalStateException("Illegal operation " + opcodes[position] + " at position " + position);
+				throw new IllegalStateException("Illegal instruction " + memory[pointer] + " at address " + pointer);
 			}
 
 			// Skip ahead to next instruction
-			position += 4;
-		}
+			pointer += 4;
+			instruction = memory[pointer];
+		} while (instruction != 99);
 
 		// Return value at position 0
-		return opcodes[0];
+		return memory[0];
 	}
 }
