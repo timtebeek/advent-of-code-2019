@@ -4,8 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static java.util.stream.Collectors.summingInt;
-
 public class FuelRequirements {
 
 	public static void main(String[] args) throws Exception {
@@ -14,7 +12,9 @@ public class FuelRequirements {
 
 	static Integer calculateTotal() throws Exception {
 		Path input = Paths.get(FuelRequirements.class.getResource("input.txt").toURI());
-		return Files.lines(input).collect(summingInt(str -> calculateFuel(Integer.parseInt(str))));
+		return Files.lines(input)
+				.mapToInt(str -> calculateFuel(Integer.parseInt(str)))
+				.sum();
 	}
 
 	private static int calculateFuel(int mass) {
