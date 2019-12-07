@@ -1,7 +1,8 @@
 package com.github.timtebeek.day3.wires;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 import lombok.Value;
@@ -10,15 +11,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class Wires {
 	static int distanceToClosestIntersection(String wireA, String wireB) {
-		Set<Point> pointsA = traceWire(wireA);
-		Set<Point> pointsB = traceWire(wireB);
+		List<Point> pointsA = traceWire(wireA);
+		List<Point> pointsB = traceWire(wireB);
 
 		// Diagnostics
-		plot(pointsA, pointsB);
+		// plot(pointsA, pointsB);
 
 		// Retain only intersections
 		pointsA.retainAll(pointsB);
-
 		log.info("Intersections: {}", pointsA);
 
 		// Return shortest distance to intersection
@@ -27,8 +27,26 @@ class Wires {
 				.min().getAsInt();
 	}
 
-	private static Set<Point> traceWire(String wireA) {
-		Set<Point> points = new LinkedHashSet<>();
+	static int fewestStepToIntersection(String wireA, String wireB) {
+		List<Point> pointsA = traceWire(wireA);
+		List<Point> pointsB = traceWire(wireB);
+
+		// Diagnostics
+		// plot(pointsA, pointsB);
+
+		// Retain only intersections
+		List<Point> intersections = new ArrayList<>(pointsA);
+		intersections.retainAll(pointsB);
+		log.info("Intersections: {}", intersections);
+
+		// Return shortest distance to intersection
+		return intersections.stream()
+				.mapToInt(p -> pointsA.indexOf(p) + 1 + pointsB.indexOf(p) + 1)
+				.min().getAsInt();
+	}
+
+	private static List<Point> traceWire(String wireA) {
+		List<Point> points = new ArrayList<>();
 		Point current = new Point(0, 0);
 		for (String section : wireA.split(",")) {
 			char direction = section.charAt(0);
@@ -41,7 +59,7 @@ class Wires {
 		return points;
 	}
 
-	private static void plot(Set<Point> pointsA, Set<Point> pointsB) {
+	private static void plot(Collection<Point> pointsA, Collection<Point> pointsB) {
 		int maxX = Stream.concat(pointsA.stream(), pointsB.stream())
 				.mapToInt(Point::getX)
 				.max().getAsInt();
