@@ -14,20 +14,12 @@ public class AmplifyThrustLoop {
 	}
 
 	static int executeInLoop(List<Integer> phases, int[] memory) {
-		Amplifier a = new Amplifier("A", memory.clone(), null);
-		Amplifier b = new Amplifier("B", memory.clone(), a.signalOut);
-		Amplifier c = new Amplifier("C", memory.clone(), b.signalOut);
-		Amplifier d = new Amplifier("D", memory.clone(), c.signalOut);
-		Amplifier e = new Amplifier("E", memory.clone(), d.signalOut);
+		Amplifier a = new Amplifier("A", phases.get(0), memory.clone(), null);
+		Amplifier b = new Amplifier("B", phases.get(1), memory.clone(), a.signalOut);
+		Amplifier c = new Amplifier("C", phases.get(2), memory.clone(), b.signalOut);
+		Amplifier d = new Amplifier("D", phases.get(3), memory.clone(), c.signalOut);
+		Amplifier e = new Amplifier("E", phases.get(4), memory.clone(), d.signalOut);
 		a.signalIn = e.signalOut;
-
-		// "Provide each amplifier its phase setting at its first input instruction; all further input/output
-		// instructions are for signals."
-		a.signalIn.push(phases.get(0));
-		b.signalIn.push(phases.get(1));
-		c.signalIn.push(phases.get(2));
-		d.signalIn.push(phases.get(3));
-		e.signalIn.push(phases.get(4));
 
 		// "To start the process, a 0 signal is sent to amplifier A's input exactly once."
 		a.signalIn.addLast(0);
@@ -46,25 +38,37 @@ public class AmplifyThrustLoop {
 class Amplifier {
 	final String name;
 	final int[] memory;
+	final int phase;
+
+	int pointer = 0;
+	String instruction;
+	int numberOfParameters = -1;
+	boolean jumped = false;
 
 	Deque<Integer> signalIn = new ArrayDeque<>();
 	Deque<Integer> signalOut = new ArrayDeque<>();
 
-	public Amplifier(String name, int[] memory, Deque<Integer> signalIn) {
+	public Amplifier(String name, int phase, int[] memory, Deque<Integer> signalIn) {
 		this.name = name;
+		this.phase = phase;
 		this.memory = memory;
 		this.signalIn = signalIn;
 	}
 
 	void execute() {
-		int pointer = 0;
-		String instruction;
+		// "Provide each amplifier its phase setting at its first input instruction; all further input/output
+		// instructions are for signals."
+		signalIn.push(phase);
+
 		while (true) {
+			// Skip ahead to next instruction
+			if (!jumped) {
+				pointer += (1 + numberOfParameters);
+			}
+
 			// Read first instruction
 			instruction = String.valueOf(memory[pointer]);
-			System.out.println(name + ": pointer = " + pointer + ", instruction = " + instruction);
-			final int numberOfParameters;
-			boolean jumped = false;
+			System.out.println(String.format("%s: pointer = %d, instruction = %s", name, pointer, instruction));
 
 			// Execute instructions
 			if (instruction.endsWith("1")) {
@@ -89,6 +93,7 @@ class Amplifier {
 				int firstParam = readParameterValue(instruction, 1, pointer, memory);
 				signalOut.addLast(firstParam);
 				numberOfParameters = 1;
+				break;// Doubtful
 			} else if (instruction.endsWith("5")) {
 				// jump-if-true
 				int firstParam = readParameterValue(instruction, 1, pointer, memory);
@@ -126,11 +131,6 @@ class Amplifier {
 				break;
 			} else {
 				throw new IllegalStateException("Illegal instruction " + memory[pointer] + " at address " + pointer);
-			}
-
-			// Skip ahead to next instruction
-			if (!jumped) {
-				pointer += (1 + numberOfParameters);
 			}
 		}
 	}
