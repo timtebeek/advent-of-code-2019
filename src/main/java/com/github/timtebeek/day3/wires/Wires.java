@@ -45,15 +45,31 @@ class Wires {
 				.min().getAsInt();
 	}
 
-	private static List<Point> traceWire(String wireA) {
+	private static List<Point> traceWire(String wire) {
 		List<Point> points = new ArrayList<>();
-		Point current = new Point(0, 0);
-		for (String section : wireA.split(",")) {
+		int x = 0;
+		int y = 0;
+		for (final String section : wire.split(",")) {
 			char direction = section.charAt(0);
 			int length = Integer.parseInt(section.substring(1));
 			for (int i = 0; i < length; i++) {
-				current = current.step(direction);
-				points.add(current);
+				switch (direction) {
+				case 'U':
+					y++;
+					break;
+				case 'D':
+					y--;
+					break;
+				case 'L':
+					x--;
+					break;
+				case 'R':
+					x++;
+					break;
+				default:
+					throw new IllegalArgumentException(section);
+				}
+				points.add(new Point(x, y));
 			}
 		}
 		return points;
@@ -87,25 +103,4 @@ class Wires {
 class Point {
 	int x;
 	int y;
-
-	Point step(char direction) {
-		switch (direction) {
-		case 'U':
-			return new Point(x, y + 1);
-		case 'D':
-			return new Point(x, y - 1);
-		case 'L':
-			return new Point(x - 1, y);
-		case 'R':
-			return new Point(x + 1, y);
-		default:
-			throw new IllegalArgumentException("Illegal direction " + direction);
-		}
-	}
-
-	@Override
-	public String toString() {
-		return String.format("(%d,%d)", x, y);
-	}
-
 }
