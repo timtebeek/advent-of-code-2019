@@ -6,8 +6,13 @@ import org.junit.jupiter.api.Test;
 class OpcodesTest {
 
 	@Test
-	void testCalculate() throws Exception {
-		Assertions.assertEquals(9706670, new Opcodes().calculate());
+	void testCalculatePart1() throws Exception {
+		Assertions.assertEquals(9706670, new Opcodes().calculatePart1());
+	}
+
+	@Test
+	void testCalculatePart2() throws Exception {
+		Assertions.assertEquals(2552, new Opcodes().calculatePart2(19690720));
 	}
 
 	@Test
