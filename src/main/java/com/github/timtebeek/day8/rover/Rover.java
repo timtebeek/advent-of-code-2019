@@ -56,10 +56,10 @@ class Rover {
 					if (projection[y][x] == '2') {
 						switch (row.charAt(x)) {
 						case '0':
-							projection[y][x] = '0';
+							projection[y][x] = ' ';
 							break;
 						case '1':
-							projection[y][x] = ' ';
+							projection[y][x] = 'X';
 							break;
 						}
 					}
@@ -83,7 +83,7 @@ class Rover {
 						projection[y][x] = '0';
 						break;
 					case '1':
-						projection[y][x] = ' ';
+						projection[y][x] = '1';
 						break;
 					}
 				}

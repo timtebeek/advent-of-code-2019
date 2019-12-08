@@ -32,8 +32,8 @@ class RoverTest {
 	void testSamplePart2() throws Exception {
 		String image = "0222112222120000";
 		char[][] part2 = Rover.part2(2, 2, image);
-		assertArrayEquals("0 ".toCharArray(), part2[0]);
-		assertArrayEquals(" 0".toCharArray(), part2[1]);
+		assertArrayEquals("01".toCharArray(), part2[0]);
+		assertArrayEquals("10".toCharArray(), part2[1]);
 	}
 
 	@Test
