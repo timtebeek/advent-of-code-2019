@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RoverTest {
@@ -25,6 +26,14 @@ class RoverTest {
 		String image = Files.lines(Paths.get(getClass().getResource("image.txt").toURI())).findFirst().get();
 		long onesByTwos = Rover.part1(25, 6, image);
 		assertEquals(1703, onesByTwos);
+	}
+
+	@Test
+	void testSamplePart2() throws Exception {
+		String image = "0222112222120000";
+		char[][] part2 = Rover.part2(2, 2, image);
+		assertArrayEquals("0 ".toCharArray(), part2[0]);
+		assertArrayEquals(" 0".toCharArray(), part2[1]);
 	}
 
 	@Test
