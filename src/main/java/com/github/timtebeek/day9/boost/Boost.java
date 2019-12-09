@@ -3,10 +3,11 @@ package com.github.timtebeek.day9.boost;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Boost {
 
-	// XXX We need a new encoding of our memory
-	// XXX Somehow relative base memory needs to be offset after initial program length, using initial length as offset?
 	static void execute(BlockingDeque<Long> inputs, BlockingDeque<Long> outputs, Map<Long, Long> memory)
 			throws InterruptedException {
 
@@ -20,30 +21,38 @@ public class Boost {
 			final int numberOfParameters;
 			boolean jumped = false;
 
+
 			// Execute instructions
 			if (instruction.endsWith("1")) {
+				log.info("{} -> [{}, {},+ {}, {}]", pointer, instruction, memory.get(pointer + 1),
+						memory.get(pointer + 2), memory.get(pointer + 3));
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
 				long targetAddress = memory.get(pointer + 3);
 				memory.put(targetAddress, firstParam + secondParam);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("2")) {
+				log.info("{} -> [{}, {},* {}, {}]", pointer, instruction, memory.get(pointer + 1),
+						memory.get(pointer + 2), memory.get(pointer + 3));
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
 				long targetAddress = memory.get(pointer + 3);
 				memory.put(targetAddress, firstParam * secondParam);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("3")) {
+				log.info("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
 				// Store input in memory
 				long targetAddress = memory.get(pointer + 1);
 				memory.put(targetAddress, inputs.takeFirst());
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("4")) {
+				log.info("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
 				// Print value at position
 				long value = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				outputs.putLast(value);
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("5")) {
+				log.info("{} -> [{}, {}, {}]", pointer, instruction, memory.get(pointer + 1), memory.get(pointer + 2));
 				// jump-if-true
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
@@ -53,6 +62,7 @@ public class Boost {
 				}
 				numberOfParameters = 2;
 			} else if (instruction.endsWith("6")) {
+				log.info("{} -> [{}, {}, {}]", pointer, instruction, memory.get(pointer + 1), memory.get(pointer + 2));
 				// jump-if-false
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
@@ -62,6 +72,8 @@ public class Boost {
 				}
 				numberOfParameters = 2;
 			} else if (instruction.endsWith("7")) {
+				log.info("{} -> [{}, {},< {}, {}]", pointer, instruction, memory.get(pointer + 1),
+						memory.get(pointer + 2), memory.get(pointer + 3));
 				// less than
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
@@ -69,6 +81,8 @@ public class Boost {
 				memory.put(targetAddress, firstParam < secondParam ? 1 : 0l);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("8")) {
+				log.info("{} -> [{}, {},== {}, {}]", pointer, instruction, memory.get(pointer + 1),
+						memory.get(pointer + 2), memory.get(pointer + 3));
 				// equals
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
@@ -79,7 +93,8 @@ public class Boost {
 				// halt
 				System.out.println("Goodbye! " + outputs.peekLast());
 				return;
-			}  else if (instruction.endsWith("9")) {
+			} else if (instruction.endsWith("9")) {
+				log.info("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
 				// adjust relative base
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				relativeBase += firstParam;
@@ -96,7 +111,8 @@ public class Boost {
 		}
 	}
 
-	static long readParameterValue(String instruction, int parameter, long pointer, long relativeBase, Map<Long, Long> memory) {
+	static long readParameterValue(String instruction, int parameter, long pointer, long relativeBase,
+			Map<Long, Long> memory) {
 		// Account for two digit opcode when determining character
 		int index = 1 + parameter;
 
@@ -112,7 +128,7 @@ public class Boost {
 
 		// Return value at referenced memory location
 		if (mode == 0) {
-			return memory.get(parameterValue);
+			return memory.getOrDefault(parameterValue, 0L);
 		}
 
 		// Return immediate value
@@ -122,7 +138,7 @@ public class Boost {
 
 		// Return relative value
 		if (mode == 2) {
-			return memory.get(relativeBase + parameterValue);
+			return memory.getOrDefault(relativeBase + parameterValue, 0L);
 		}
 
 		throw new IllegalStateException("Mode " + mode);
