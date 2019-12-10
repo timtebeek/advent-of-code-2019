@@ -50,6 +50,7 @@ public class Boost {
 				// Print value at position
 				long value = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				outputs.putLast(value);
+				System.out.println(outputs);
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("5")) {
 				log.info("{} -> [{}, {}, {}]", pointer, instruction, memory.get(pointer + 1), memory.get(pointer + 2));
