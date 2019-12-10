@@ -34,6 +34,12 @@ public class AmplifyThrust {
 		Amplifier2 D = new Amplifier2(memory);
 		Amplifier2 E = new Amplifier2(memory);
 
+		// Wire up signals
+		B.input = A.output;
+		C.input = B.output;
+		D.input = C.output;
+		E.input = D.output;
+
 		// Provide phases as first input
 		A.input.putFirst(phases.get(0));
 		B.input.putFirst(phases.get(1));
@@ -41,12 +47,8 @@ public class AmplifyThrust {
 		D.input.putFirst(phases.get(3));
 		E.input.putFirst(phases.get(4));
 
-		// Wire up signals
-		A.input.putFirst(0L);
-		A.output = B.input;
-		B.output = C.input;
-		C.output = D.input;
-		D.output = E.input;
+		// Provide zero as first signal to A
+		A.input.putLast(0L);
 
 		// Execute all once in sequence
 		A.execute();
