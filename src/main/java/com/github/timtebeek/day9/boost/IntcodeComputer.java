@@ -22,7 +22,7 @@ public class IntcodeComputer {
 		return outputs.peekLast();
 	}
 
-	static Map<Long, Long> convertToIndexedMemory(long[] program) {
+	public static Map<Long, Long> convertToIndexedMemory(long[] program) {
 		log.info("{}", program);
 		return Streams.zip(
 				LongStream.range(0, program.length).boxed(),
@@ -65,7 +65,7 @@ public class IntcodeComputer {
 			} else if (instruction.endsWith("3")) {
 				log.info("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
 				// Store input in memory
-				long targetAddress = memory.get(pointer + 1);
+				long targetAddress = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				memory.put(targetAddress, inputs.takeFirst());
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("4")) {
