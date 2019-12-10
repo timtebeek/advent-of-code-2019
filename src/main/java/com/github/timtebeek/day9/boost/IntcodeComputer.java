@@ -2,13 +2,36 @@ package com.github.timtebeek.day9.boost;
 
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.stream.LongStream;
 
+import com.google.common.collect.Streams;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-public class Boost {
+import static java.util.stream.Collectors.toMap;
 
-	static void execute(BlockingDeque<Long> inputs, BlockingDeque<Long> outputs, Map<Long, Long> memory)
+@Slf4j
+public class IntcodeComputer {
+
+	public static long execute(long input, long[] program) throws InterruptedException {
+		Map<Long, Long> memory = convertToIndexedMemory(program);
+		BlockingDeque<Long> inputs = new LinkedBlockingDeque<>();
+		inputs.putFirst(input);
+		BlockingDeque<Long> outputs = new LinkedBlockingDeque<>();
+		execute(inputs, outputs, memory);
+		return outputs.peekLast();
+	}
+
+	static Map<Long, Long> convertToIndexedMemory(long[] program) {
+		log.info("{}", program);
+		return Streams.zip(
+				LongStream.range(0, program.length).boxed(),
+				LongStream.of(program).boxed(),
+				Map::entry)
+				.collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+	}
+
+	public static void execute(BlockingDeque<Long> inputs, BlockingDeque<Long> outputs, Map<Long, Long> memory)
 			throws InterruptedException {
 
 		long pointer = 0;
