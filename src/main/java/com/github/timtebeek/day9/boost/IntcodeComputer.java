@@ -43,7 +43,7 @@ public class IntcodeComputer {
 			final int numberOfParameters;
 			boolean jumped = false;
 
-			log.info("Memory:   {}", memory);
+			log.info("Mem: {} -> {}", pointer, memory);
 
 			// Execute instructions
 			if (instruction.endsWith("1")) {
@@ -66,7 +66,7 @@ public class IntcodeComputer {
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("3")) {
 				// Store input in memory
-				long targetAddress = readParameterValue(instruction, 1, pointer, relativeBase, memory);
+				long targetAddress = memory.get(pointer + 1);
 				Long read = inputs.takeFirst();
 				memory.put(targetAddress, read);
 				log.info("{} -> [{}, {}] (read: {})", pointer, instruction, memory.get(pointer + 1), read);
