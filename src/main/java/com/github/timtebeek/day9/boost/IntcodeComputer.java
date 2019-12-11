@@ -49,7 +49,7 @@ public class IntcodeComputer {
 			if (instruction.endsWith("1")) {
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
-				long targetAddress = memory.get(pointer + 3);
+				long targetAddress = readTargetAddress(instruction, 3, pointer, relativeBase, memory);
 				long value = firstParam + secondParam;
 				log.debug("{} -> [{}, {},+ {}, {}] ({})", pointer, instruction, memory.get(pointer + 1),
 						memory.get(pointer + 2), memory.get(pointer + 3), value);
@@ -58,7 +58,7 @@ public class IntcodeComputer {
 			} else if (instruction.endsWith("2")) {
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
-				long targetAddress = memory.get(pointer + 3);
+				long targetAddress = readTargetAddress(instruction, 3, pointer, relativeBase, memory);
 				long value = firstParam * secondParam;
 				log.debug("{} -> [{}, {},* {}, {}] ({})", pointer, instruction, memory.get(pointer + 1),
 						memory.get(pointer + 2), memory.get(pointer + 3), value);
@@ -66,7 +66,7 @@ public class IntcodeComputer {
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("3")) {
 				// Store input in memory
-				long targetAddress = memory.get(pointer + 1);
+				long targetAddress = readTargetAddress(instruction, 1, pointer, relativeBase, memory);
 				Long read = inputs.takeFirst();
 				memory.put(targetAddress, read);
 				log.debug("{} -> [{}, {}] (read: {})", pointer, instruction, memory.get(pointer + 1), read);
@@ -103,7 +103,7 @@ public class IntcodeComputer {
 				// less than
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
-				long targetAddress = memory.get(pointer + 3);
+				long targetAddress = readTargetAddress(instruction, 3, pointer, relativeBase, memory);
 				memory.put(targetAddress, firstParam < secondParam ? 1 : 0l);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("8")) {
@@ -112,7 +112,7 @@ public class IntcodeComputer {
 				// equals
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
-				long targetAddress = memory.get(pointer + 3);
+				long targetAddress = readTargetAddress(instruction, 3, pointer, relativeBase, memory);
 				memory.put(targetAddress, firstParam == secondParam ? 1 : 0l);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("99")) {
@@ -171,6 +171,16 @@ public class IntcodeComputer {
 			return Character.getNumericValue(charAt);
 		}
 		return 0;
+	}
+
+	private static long readTargetAddress(String instruction, int parameter, long pointer, long relativeBase,
+			Map<Long, Long> memory) {
+		long targetAddress = memory.get(pointer + parameter);
+		int mode = determineParameterMode(instruction, parameter);
+		if (mode == 2) {
+			return relativeBase + targetAddress;
+		}
+		return targetAddress;
 	}
 
 }

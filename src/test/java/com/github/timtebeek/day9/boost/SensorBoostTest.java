@@ -113,7 +113,8 @@ public class SensorBoostTest {
 		Computer computer = new Computer("", puzzleInput);
 		computer.input.putFirst(1L);
 		computer.execute();
-		assertEquals(-1, computer.output.peekLast());
+		assertEquals(1, computer.output.size());
+		assertEquals(3742852857L, computer.output.peekLast());
 	}
 
 }
