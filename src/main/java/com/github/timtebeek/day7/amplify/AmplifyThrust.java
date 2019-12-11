@@ -3,8 +3,8 @@ package com.github.timtebeek.day7.amplify;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.*;
+import java.util.stream.Stream;
 
 import com.github.timtebeek.day9.boost.IntcodeComputer;
 import com.google.common.collect.Collections2;
@@ -97,18 +97,18 @@ public class AmplifyThrust {
 		// "To start the process, a 0 signal is sent to amplifier A's input exactly once."
 		A.input.putLast(0l);
 
-		boolean runningA;
-		boolean runningB;
-		boolean runningC;
-		boolean runningD;
-		boolean runningE;
-		do {
-			runningA = A.execute();
-			runningB = B.execute();
-			runningC = C.execute();
-			runningD = D.execute();
-			runningE = E.execute();
-		} while (runningA && runningB && runningC && runningD && runningE);
+
+		// Run all at the same time, since they are waiting for each others inputs
+		ExecutorService executorService = Executors.newFixedThreadPool(5);
+		Stream.of(A, B, C, D, E).forEach(amp -> executorService.submit(() -> {
+			try {
+				amp.execute();
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
+		}));
+		executorService.shutdown();
+		executorService.awaitTermination(30, TimeUnit.SECONDS);
 
 		return E.output.peekLast();
 	}
