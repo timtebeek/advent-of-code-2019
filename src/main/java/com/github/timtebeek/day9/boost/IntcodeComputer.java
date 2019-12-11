@@ -44,6 +44,7 @@ public class IntcodeComputer {
 			final int numberOfParameters;
 			boolean jumped = false;
 
+			log.info("{}", memory);
 
 			// Execute instructions
 			if (instruction.endsWith("1")) {
@@ -63,17 +64,17 @@ public class IntcodeComputer {
 				memory.put(targetAddress, firstParam * secondParam);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("3")) {
-				log.info("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
 				// Store input in memory
 				long targetAddress = readParameterValue(instruction, 1, pointer, relativeBase, memory);
-				memory.put(targetAddress, inputs.takeFirst());
+				Long read = inputs.takeFirst();
+				memory.put(targetAddress, read);
+				log.info("{} -> [{}, {}] (read: {})", pointer, instruction, memory.get(pointer + 1), read);
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("4")) {
-				log.info("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
 				// Print value at position
 				long value = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				outputs.putLast(value);
-				System.out.println(outputs);
+				log.info("{} -> [{}, {}] (wrote: {})", pointer, instruction, memory.get(pointer + 1), outputs);
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("5")) {
 				log.info("{} -> [{}, {}, {}]", pointer, instruction, memory.get(pointer + 1), memory.get(pointer + 2));

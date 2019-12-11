@@ -12,7 +12,14 @@ class AmplifyThrustTest {
 
 	@Test
 	void testExecuteSample1() throws InterruptedException {
-		long[] memory = { 3, 15, 3, 16, 1002, 16, 10, 16, 1, 16, 15, 15, 4, 15, 99, 0, 0 };
+		long[] memory = {
+				3, 15,
+				3, 16,
+				1002, 16, 10, 16,
+				1, 16, 15, 15,
+				4, 15,
+				99,
+				0, 0 };
 		long maxThruster = executeInSequence(List.of(4l, 3l, 2l, 1l, 0l), memory);
 		assertEquals(43210, maxThruster);
 	}
