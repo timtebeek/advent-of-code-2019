@@ -129,11 +129,10 @@ class Amplifier {
 		this.memory = convertToIndexedMemory(program);
 	}
 
-	boolean execute() throws InterruptedException {
+	void execute() throws InterruptedException {
 		log.info("{} Executing: {}", name, memory);
 		log.info("{} Input:     {}", name, input);
-		boolean running = IntcodeComputer.execute(input, output, memory);
+		IntcodeComputer.execute(input, output, memory);
 		log.info("{} Output:    {}", name, output);
-		return running;
 	}
 }
