@@ -30,7 +30,7 @@ public class IntcodeComputer {
 				.collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
-	public static void execute(BlockingDeque<Long> inputs, BlockingDeque<Long> outputs, Map<Long, Long> memory)
+	public static boolean execute(BlockingDeque<Long> inputs, BlockingDeque<Long> outputs, Map<Long, Long> memory)
 			throws InterruptedException {
 
 		long pointer = 0;
@@ -118,7 +118,7 @@ public class IntcodeComputer {
 			} else if (instruction.endsWith("99")) {
 				// halt
 				System.out.println("Goodbye! " + outputs.peekLast());
-				return;
+				return false;
 			} else if (instruction.endsWith("9")) {
 				log.info("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
 				// adjust relative base

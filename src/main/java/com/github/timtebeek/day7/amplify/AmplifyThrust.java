@@ -29,11 +29,11 @@ public class AmplifyThrust {
 	}
 
 	static long executeInSequence(List<Long> phases, long[] memory) throws InterruptedException {
-		Amplifier2 A = new Amplifier2("A", memory);
-		Amplifier2 B = new Amplifier2("B", memory);
-		Amplifier2 C = new Amplifier2("C", memory);
-		Amplifier2 D = new Amplifier2("D", memory);
-		Amplifier2 E = new Amplifier2("E", memory);
+		Amplifier A = new Amplifier("A", memory);
+		Amplifier B = new Amplifier("B", memory);
+		Amplifier C = new Amplifier("C", memory);
+		Amplifier D = new Amplifier("D", memory);
+		Amplifier E = new Amplifier("E", memory);
 
 		// Wire up thrusters
 		B.input = A.output;
@@ -62,26 +62,78 @@ public class AmplifyThrust {
 		return E.output.peekLast();
 	}
 
+	static long findOptiomalPermutationDay2(long[] memory) {
+		Collection<List<Long>> permutations = Collections2.permutations(List.of(5l, 6l, 7l, 8l, 9l));
+		return permutations.stream().mapToLong(perm -> {
+			try {
+				return executeInLoop(perm, memory);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
+		}).max().getAsLong();
+	}
+
+	static long executeInLoop(List<Long> phases, long[] memory) throws InterruptedException {
+		Amplifier A = new Amplifier("A", memory);
+		Amplifier B = new Amplifier("B", memory);
+		Amplifier C = new Amplifier("C", memory);
+		Amplifier D = new Amplifier("D", memory);
+		Amplifier E = new Amplifier("E", memory);
+
+		// Wire up thrusters
+		A.input = E.output;
+		B.input = A.output;
+		C.input = B.output;
+		D.input = C.output;
+		E.input = D.output;
+
+		// Provide phases as first input
+		A.input.putFirst(phases.get(0));
+		B.input.putFirst(phases.get(1));
+		C.input.putFirst(phases.get(2));
+		D.input.putFirst(phases.get(3));
+		E.input.putFirst(phases.get(4));
+
+		// "To start the process, a 0 signal is sent to amplifier A's input exactly once."
+		A.input.putLast(0l);
+
+		boolean runningA;
+		boolean runningB;
+		boolean runningC;
+		boolean runningD;
+		boolean runningE;
+		do {
+			runningA = A.execute();
+			runningB = B.execute();
+			runningC = C.execute();
+			runningD = D.execute();
+			runningE = E.execute();
+		} while (runningA && runningB && runningC && runningD && runningE);
+
+		return E.output.peekLast();
+	}
+
 }
 
 @Data
 @Slf4j
-class Amplifier2 {
+class Amplifier {
 
 	final String name;
 	final Map<Long, Long> memory;
 	BlockingDeque<Long> input = new LinkedBlockingDeque<>();
 	BlockingDeque<Long> output = new LinkedBlockingDeque<>();
 
-	public Amplifier2(String name, long[] program) {
+	public Amplifier(String name, long[] program) {
 		this.name = name;
 		this.memory = convertToIndexedMemory(program);
 	}
 
-	void execute() throws InterruptedException {
+	boolean execute() throws InterruptedException {
 		log.info("{} Executing: {}", name, memory);
 		log.info("{} Input:     {}", name, input);
-		IntcodeComputer.execute(input, output, memory);
+		boolean running = IntcodeComputer.execute(input, output, memory);
 		log.info("{} Output:    {}", name, output);
+		return running;
 	}
 }
