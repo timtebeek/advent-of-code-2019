@@ -2,16 +2,11 @@ package com.github.timtebeek.day7.amplify;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
-import com.github.timtebeek.day9.boost.IntcodeComputer;
+import com.github.timtebeek.day9.boost.Computer;
 import com.google.common.collect.Collections2;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
-import static com.github.timtebeek.day9.boost.IntcodeComputer.convertToIndexedMemory;
 
 public class AmplifyThrust {
 	static long findOptiomalPermutationDay1(long[] memory) {
@@ -29,11 +24,11 @@ public class AmplifyThrust {
 	}
 
 	static long executeInSequence(List<Long> phases, long[] memory) throws InterruptedException {
-		Amplifier A = new Amplifier("A", memory);
-		Amplifier B = new Amplifier("B", memory);
-		Amplifier C = new Amplifier("C", memory);
-		Amplifier D = new Amplifier("D", memory);
-		Amplifier E = new Amplifier("E", memory);
+		Computer A = new Computer("A", memory);
+		Computer B = new Computer("B", memory);
+		Computer C = new Computer("C", memory);
+		Computer D = new Computer("D", memory);
+		Computer E = new Computer("E", memory);
 
 		// Wire up thrusters
 		B.input = A.output;
@@ -74,11 +69,11 @@ public class AmplifyThrust {
 	}
 
 	static long executeInLoop(List<Long> phases, long[] memory) throws InterruptedException {
-		Amplifier A = new Amplifier("A", memory);
-		Amplifier B = new Amplifier("B", memory);
-		Amplifier C = new Amplifier("C", memory);
-		Amplifier D = new Amplifier("D", memory);
-		Amplifier E = new Amplifier("E", memory);
+		Computer A = new Computer("A", memory);
+		Computer B = new Computer("B", memory);
+		Computer C = new Computer("C", memory);
+		Computer D = new Computer("D", memory);
+		Computer E = new Computer("E", memory);
 
 		// Wire up thrusters
 		A.input = E.output;
@@ -113,26 +108,4 @@ public class AmplifyThrust {
 		return E.output.peekLast();
 	}
 
-}
-
-@Data
-@Slf4j
-class Amplifier {
-
-	final String name;
-	final Map<Long, Long> memory;
-	BlockingDeque<Long> input = new LinkedBlockingDeque<>();
-	BlockingDeque<Long> output = new LinkedBlockingDeque<>();
-
-	public Amplifier(String name, long[] program) {
-		this.name = name;
-		this.memory = convertToIndexedMemory(program);
-	}
-
-	void execute() throws InterruptedException {
-		log.info("{} Executing: {}", name, memory);
-		log.info("{} Input:     {}", name, input);
-		IntcodeComputer.execute(input, output, memory);
-		log.info("{} Output:    {}", name, output);
-	}
 }
