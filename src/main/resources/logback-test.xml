@@ -2,5 +2,5 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml" />
     <logger name="root" level="INFO"/>
-    <logger name="com.github.timtebeek" level="INFO"/>
+    <logger name="com.github.timtebeek" level="DEBUG"/>
 </configuration>
