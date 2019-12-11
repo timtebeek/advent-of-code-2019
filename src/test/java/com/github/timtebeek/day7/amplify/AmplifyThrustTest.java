@@ -110,6 +110,6 @@ class AmplifyThrustTest {
 	@Test
 	void testPart2() throws Exception {
 		long maxThrust = findOptiomalPermutationDay2(puzzleInput);
-		assertEquals(1, maxThrust);
+		assertEquals(61379886, maxThrust);
 	}
 }

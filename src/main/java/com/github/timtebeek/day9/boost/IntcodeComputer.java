@@ -43,7 +43,7 @@ public class IntcodeComputer {
 			final int numberOfParameters;
 			boolean jumped = false;
 
-			log.info("Mem: {} -> {}", pointer, memory);
+			log.debug("Mem: {} -> {}", pointer, memory);
 
 			// Execute instructions
 			if (instruction.endsWith("1")) {
@@ -51,7 +51,7 @@ public class IntcodeComputer {
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
 				long targetAddress = memory.get(pointer + 3);
 				long value = firstParam + secondParam;
-				log.info("{} -> [{}, {},+ {}, {}] ({})", pointer, instruction, memory.get(pointer + 1),
+				log.debug("{} -> [{}, {},+ {}, {}] ({})", pointer, instruction, memory.get(pointer + 1),
 						memory.get(pointer + 2), memory.get(pointer + 3), value);
 				memory.put(targetAddress, value);
 				numberOfParameters = 3;
@@ -60,7 +60,7 @@ public class IntcodeComputer {
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
 				long targetAddress = memory.get(pointer + 3);
 				long value = firstParam * secondParam;
-				log.info("{} -> [{}, {},* {}, {}] ({})", pointer, instruction, memory.get(pointer + 1),
+				log.debug("{} -> [{}, {},* {}, {}] ({})", pointer, instruction, memory.get(pointer + 1),
 						memory.get(pointer + 2), memory.get(pointer + 3), value);
 				memory.put(targetAddress, value);
 				numberOfParameters = 3;
@@ -69,16 +69,16 @@ public class IntcodeComputer {
 				long targetAddress = memory.get(pointer + 1);
 				Long read = inputs.takeFirst();
 				memory.put(targetAddress, read);
-				log.info("{} -> [{}, {}] (read: {})", pointer, instruction, memory.get(pointer + 1), read);
+				log.debug("{} -> [{}, {}] (read: {})", pointer, instruction, memory.get(pointer + 1), read);
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("4")) {
 				// Print value at position
 				long value = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				outputs.putLast(value);
-				log.info("{} -> [{}, {}] (wrote: {})", pointer, instruction, memory.get(pointer + 1), outputs);
+				log.debug("{} -> [{}, {}] (wrote: {})", pointer, instruction, memory.get(pointer + 1), outputs);
 				numberOfParameters = 1;
 			} else if (instruction.endsWith("5")) {
-				log.info("{} -> [{}, {}, {}]", pointer, instruction, memory.get(pointer + 1), memory.get(pointer + 2));
+				log.debug("{} -> [{}, {}, {}]", pointer, instruction, memory.get(pointer + 1), memory.get(pointer + 2));
 				// jump-if-true
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
@@ -88,7 +88,7 @@ public class IntcodeComputer {
 				}
 				numberOfParameters = 2;
 			} else if (instruction.endsWith("6")) {
-				log.info("{} -> [{}, {}, {}]", pointer, instruction, memory.get(pointer + 1), memory.get(pointer + 2));
+				log.debug("{} -> [{}, {}, {}]", pointer, instruction, memory.get(pointer + 1), memory.get(pointer + 2));
 				// jump-if-false
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
@@ -98,7 +98,7 @@ public class IntcodeComputer {
 				}
 				numberOfParameters = 2;
 			} else if (instruction.endsWith("7")) {
-				log.info("{} -> [{}, {},< {}, {}]", pointer, instruction, memory.get(pointer + 1),
+				log.debug("{} -> [{}, {},< {}, {}]", pointer, instruction, memory.get(pointer + 1),
 						memory.get(pointer + 2), memory.get(pointer + 3));
 				// less than
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
@@ -107,7 +107,7 @@ public class IntcodeComputer {
 				memory.put(targetAddress, firstParam < secondParam ? 1 : 0l);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("8")) {
-				log.info("{} -> [{}, {},== {}, {}]", pointer, instruction, memory.get(pointer + 1),
+				log.debug("{} -> [{}, {},== {}, {}]", pointer, instruction, memory.get(pointer + 1),
 						memory.get(pointer + 2), memory.get(pointer + 3));
 				// equals
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
@@ -120,7 +120,7 @@ public class IntcodeComputer {
 				System.out.println("Goodbye! " + outputs.peekLast());
 				return;
 			} else if (instruction.endsWith("9")) {
-				log.info("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
+				log.debug("{} -> [{}, {}]", pointer, instruction, memory.get(pointer + 1));
 				// adjust relative base
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				relativeBase += firstParam;
