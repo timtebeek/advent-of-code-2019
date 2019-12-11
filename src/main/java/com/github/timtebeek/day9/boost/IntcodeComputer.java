@@ -45,20 +45,22 @@ public class IntcodeComputer {
 
 			// Execute instructions
 			if (instruction.endsWith("1")) {
-				log.info("{} -> [{}, {},+ {}, {}]", pointer, instruction, memory.get(pointer + 1),
-						memory.get(pointer + 2), memory.get(pointer + 3));
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
 				long targetAddress = memory.get(pointer + 3);
-				memory.put(targetAddress, firstParam + secondParam);
+				long value = firstParam + secondParam;
+				log.info("{} -> [{}, {},+ {}, {}] ({})", pointer, instruction, memory.get(pointer + 1),
+						memory.get(pointer + 2), memory.get(pointer + 3), value);
+				memory.put(targetAddress, value);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("2")) {
-				log.info("{} -> [{}, {},* {}, {}]", pointer, instruction, memory.get(pointer + 1),
-						memory.get(pointer + 2), memory.get(pointer + 3));
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
 				long secondParam = readParameterValue(instruction, 2, pointer, relativeBase, memory);
 				long targetAddress = memory.get(pointer + 3);
-				memory.put(targetAddress, firstParam * secondParam);
+				long value = firstParam * secondParam;
+				log.info("{} -> [{}, {},* {}, {}] ({})", pointer, instruction, memory.get(pointer + 1),
+						memory.get(pointer + 2), memory.get(pointer + 3), value);
+				memory.put(targetAddress, value);
 				numberOfParameters = 3;
 			} else if (instruction.endsWith("3")) {
 				// Store input in memory
