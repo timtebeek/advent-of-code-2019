@@ -43,6 +43,8 @@ public class IntcodeComputer {
 			final int numberOfParameters;
 			boolean jumped = false;
 
+			log.info("Memory:   {}", memory);
+
 			// Execute instructions
 			if (instruction.endsWith("1")) {
 				long firstParam = readParameterValue(instruction, 1, pointer, relativeBase, memory);
@@ -137,35 +139,38 @@ public class IntcodeComputer {
 
 	static long readParameterValue(String instruction, int parameter, long pointer, long relativeBase,
 			Map<Long, Long> memory) {
-		// Account for two digit opcode when determining character
-		int index = 1 + parameter;
-
 		// Determine mode: Either 0 for memory position, or 1 for immediate value
-		int mode = 0;
-		if (index < instruction.length()) {
-			char charAt = new StringBuilder(instruction).reverse().charAt(index);
-			mode = Character.getNumericValue(charAt);
-		}
+		int mode = determineParameterMode(instruction, parameter);
 
 		// Extract parameter value
-		long parameterValue = memory.get(pointer + parameter);
+		long valueAtPointerPlusParameter = memory.get(pointer + parameter);
 
 		// Return value at referenced memory location
 		if (mode == 0) {
-			return memory.getOrDefault(parameterValue, 0L);
+			return memory.get(valueAtPointerPlusParameter);
 		}
 
 		// Return immediate value
 		if (mode == 1) {
-			return parameterValue;
+			return valueAtPointerPlusParameter;
 		}
 
 		// Return relative value
 		if (mode == 2) {
-			return memory.getOrDefault(relativeBase + parameterValue, 0L);
+			return memory.getOrDefault(relativeBase + valueAtPointerPlusParameter, 0L);
 		}
 
 		throw new IllegalStateException("Mode " + mode);
+	}
+
+	private static int determineParameterMode(String instruction, int parameter) {
+		// Account for two digit opcode when determining character
+		int index = 1 + parameter;
+		if (index < instruction.length()) {
+			char charAt = new StringBuilder(instruction).reverse().charAt(index);
+			return Character.getNumericValue(charAt);
+		}
+		return 0;
 	}
 
 }
