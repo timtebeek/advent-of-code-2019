@@ -4,14 +4,53 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
+import static com.github.timtebeek.day9.boost.IntcodeComputer.convertToIndexedMemory;
+import static com.github.timtebeek.day9.boost.IntcodeComputer.readParameterValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Slf4j
-public
-class IntcodeComputerTest {
+public class IntcodeComputerTest {
+	@Test
+	void testReadParameterValue() throws Exception {
+		Map<Long, Long> memory = convertToIndexedMemory(new long[] { 0, 1l, 2, 4, 8, 16, 32, 64, 128, 256 });
+
+		// Verify reference position mode
+		long pointer = 0;
+		assertEquals(1, readParameterValue("1", 1, pointer, 0, memory));
+		assertEquals(1, readParameterValue("01", 1, pointer, 0, memory));
+		assertEquals(1, readParameterValue("001", 1, pointer, 0, memory));
+		assertEquals(1, readParameterValue("0001", 1, pointer, 0, memory));
+		assertEquals(2, readParameterValue("1", 2, pointer, 0, memory));
+		assertEquals(2, readParameterValue("01", 2, pointer, 0, memory));
+		assertEquals(2, readParameterValue("001", 2, pointer, 0, memory));
+		assertEquals(2, readParameterValue("0001", 2, pointer, 0, memory));
+
+		// Increase pointer for bigger offset
+		pointer = 2;
+		assertEquals(8, readParameterValue("1", 1, pointer, 0, memory));
+		assertEquals(8, readParameterValue("01", 1, pointer, 0, memory));
+		assertEquals(8, readParameterValue("001", 1, pointer, 0, memory));
+		assertEquals(8, readParameterValue("0001", 1, pointer, 0, memory));
+		assertEquals(128, readParameterValue("1", 2, pointer, 0, memory));
+		assertEquals(128, readParameterValue("01", 2, pointer, 0, memory));
+		assertEquals(128, readParameterValue("001", 2, pointer, 0, memory));
+		assertEquals(128, readParameterValue("0001", 2, pointer, 0, memory));
+
+		// Switch to immediate mode
+		assertEquals(4, readParameterValue("101", 1, pointer, 0, memory));
+		assertEquals(4, readParameterValue("0101", 1, pointer, 0, memory));
+		assertEquals(4, readParameterValue("1101", 1, pointer, 0, memory));
+		assertEquals(8, readParameterValue("1001", 2, pointer, 0, memory));
+		assertEquals(8, readParameterValue("1101", 2, pointer, 0, memory));
+
+		// Increase pointer yet again
+		pointer = 4;
+		assertEquals(16, readParameterValue("0101", 1, pointer, 0, memory));
+		assertEquals(16, readParameterValue("1101", 1, pointer, 0, memory));
+		assertEquals(32, readParameterValue("1001", 2, pointer, 0, memory));
+		assertEquals(32, readParameterValue("1101", 2, pointer, 0, memory));
+	}
 
 	@Test
 	void testProduce16Digits() throws InterruptedException {

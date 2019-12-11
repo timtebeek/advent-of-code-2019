@@ -1,125 +1,138 @@
 package com.github.timtebeek.day7.amplify;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.stream.Stream;
 
+import com.github.timtebeek.day9.boost.IntcodeComputer;
 import com.google.common.collect.Collections2;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
+import static com.github.timtebeek.day9.boost.IntcodeComputer.convertToIndexedMemory;
 
 public class AmplifyThrust {
-	static long findOptiomalPermutationDay1(int[] memory) {
-		Collection<List<Integer>> permutations = Collections2.permutations(List.of(0, 1, 2, 3, 4));
-		return permutations.stream().mapToLong(perm -> executeInSequence(0, perm.iterator(), memory)).max().getAsLong();
+	static long findOptiomalPermutationDay1(long[] memory) {
+		Collection<List<Long>> permutations = Collections2.permutations(List.of(0L, 1L, 2L, 3L, 4L));
+		return permutations.stream()
+				.mapToLong(perm -> {
+					try {
+						return executeInSequence(perm, memory);
+					} catch (InterruptedException e) {
+						throw new IllegalStateException(e);
+					}
+				})
+				.max()
+				.getAsLong();
 	}
 
-	static int executeInSequence(int signal, Iterator<Integer> phases, int[] memory) {
-		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
-		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
-		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
-		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
-		signal = AmplifyThrust.execute(IntStream.of(phases.next(), signal).iterator(), memory.clone());
-		return signal;
+	static long executeInSequence(List<Long> phases, long[] memory) throws InterruptedException {
+		Amplifier A = new Amplifier("A", memory);
+		Amplifier B = new Amplifier("B", memory);
+		Amplifier C = new Amplifier("C", memory);
+		Amplifier D = new Amplifier("D", memory);
+		Amplifier E = new Amplifier("E", memory);
+
+		// Wire up thrusters
+		B.input = A.output;
+		C.input = B.output;
+		D.input = C.output;
+		E.input = D.output;
+
+		// Provide phases as first input
+		A.input.putFirst(phases.get(0));
+		B.input.putFirst(phases.get(1));
+		C.input.putFirst(phases.get(2));
+		D.input.putFirst(phases.get(3));
+		E.input.putFirst(phases.get(4));
+
+		// Provide zero as first signal to A
+		A.input.putLast(0L);
+
+		// Execute all once in sequence
+		A.execute();
+		B.execute();
+		C.execute();
+		D.execute();
+		E.execute();
+
+		// Return last signal from E
+		return E.output.peekLast();
 	}
 
-	static int execute(Iterator<Integer> inputs, int[] memory) {
-		int pointer = 0;
-		String instruction;
-		while (true) {
-			// Read first instruction
-			instruction = String.valueOf(memory[pointer]);
-			final int numberOfParameters;
-			boolean jumped = false;
-
-			// Execute instructions
-			if (instruction.endsWith("1")) {
-				int firstParam = readParameterValue(instruction, 1, pointer, memory);
-				int secondParam = readParameterValue(instruction, 2, pointer, memory);
-				int targetAddress = memory[pointer + 3];
-				memory[targetAddress] = firstParam + secondParam;
-				numberOfParameters = 3;
-			} else if (instruction.endsWith("2")) {
-				int firstParam = readParameterValue(instruction, 1, pointer, memory);
-				int secondParam = readParameterValue(instruction, 2, pointer, memory);
-				int targetAddress = memory[pointer + 3];
-				memory[targetAddress] = firstParam * secondParam;
-				numberOfParameters = 3;
-			} else if (instruction.endsWith("3")) {
-				// Store input in memory
-				int targetAddress = memory[pointer + 1];
-				memory[targetAddress] = inputs.next();
-				numberOfParameters = 1;
-			} else if (instruction.endsWith("4")) {
-				// Print value at position
-				int value = readParameterValue(instruction, 1, pointer, memory);
-				return value;
-			} else if (instruction.endsWith("5")) {
-				// jump-if-true
-				int firstParam = readParameterValue(instruction, 1, pointer, memory);
-				int secondParam = readParameterValue(instruction, 2, pointer, memory);
-				if (firstParam != 0) {
-					pointer = secondParam;
-					jumped = true;
-				}
-				numberOfParameters = 2;
-			} else if (instruction.endsWith("6")) {
-				// jump-if-false
-				int firstParam = readParameterValue(instruction, 1, pointer, memory);
-				int secondParam = readParameterValue(instruction, 2, pointer, memory);
-				if (firstParam == 0) {
-					pointer = secondParam;
-					jumped = true;
-				}
-				numberOfParameters = 2;
-			} else if (instruction.endsWith("7")) {
-				// less than
-				int firstParam = readParameterValue(instruction, 1, pointer, memory);
-				int secondParam = readParameterValue(instruction, 2, pointer, memory);
-				int targetAddress = memory[pointer + 3];
-				memory[targetAddress] = firstParam < secondParam ? 1 : 0;
-				numberOfParameters = 3;
-			} else if (instruction.endsWith("8")) {
-				// equals
-				int firstParam = readParameterValue(instruction, 1, pointer, memory);
-				int secondParam = readParameterValue(instruction, 2, pointer, memory);
-				int targetAddress = memory[pointer + 3];
-				memory[targetAddress] = firstParam == secondParam ? 1 : 0;
-				numberOfParameters = 3;
-			} else {
-				throw new IllegalStateException("Illegal instruction " + memory[pointer] + " at address " + pointer);
+	static long findOptiomalPermutationDay2(long[] memory) {
+		Collection<List<Long>> permutations = Collections2.permutations(List.of(5l, 6l, 7l, 8l, 9l));
+		return permutations.stream().mapToLong(perm -> {
+			try {
+				return executeInLoop(perm, memory);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
 			}
-
-			// Skip ahead to next instruction
-			if (!jumped) {
-				pointer += (1 + numberOfParameters);
-			}
-		}
+		}).max().getAsLong();
 	}
 
-	static int readParameterValue(String instruction, int parameter, int pointer, int[] memory) {
-		// Account for two digit opcode when determining character
-		int index = 1 + parameter;
+	static long executeInLoop(List<Long> phases, long[] memory) throws InterruptedException {
+		Amplifier A = new Amplifier("A", memory);
+		Amplifier B = new Amplifier("B", memory);
+		Amplifier C = new Amplifier("C", memory);
+		Amplifier D = new Amplifier("D", memory);
+		Amplifier E = new Amplifier("E", memory);
 
-		// Determine mode: Either 0 for memory position, or 1 for immediate value
-		int mode = 0;
-		if (index < instruction.length()) {
-			char charAt = new StringBuilder(instruction).reverse().charAt(index);
-			mode = Character.getNumericValue(charAt);
-		}
+		// Wire up thrusters
+		A.input = E.output;
+		B.input = A.output;
+		C.input = B.output;
+		D.input = C.output;
+		E.input = D.output;
 
-		// Extract parameter value
-		int parameterValue = memory[pointer + parameter];
+		// Provide phases as first input
+		A.input.putFirst(phases.get(0));
+		B.input.putFirst(phases.get(1));
+		C.input.putFirst(phases.get(2));
+		D.input.putFirst(phases.get(3));
+		E.input.putFirst(phases.get(4));
 
-		// Return immediate value
-		if (mode == 1) {
-			return parameterValue;
-		}
+		// "To start the process, a 0 signal is sent to amplifier A's input exactly once."
+		A.input.putLast(0l);
 
-		// Return value at referenced memory location
-		if (mode == 0) {
-			return memory[parameterValue];
-		}
 
-		throw new IllegalStateException("Mode " + mode);
+		// Run all at the same time, since they are waiting for each others inputs
+		ExecutorService executorService = Executors.newFixedThreadPool(5);
+		Stream.of(A, B, C, D, E).forEach(amp -> executorService.submit(() -> {
+			try {
+				amp.execute();
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
+		}));
+		executorService.shutdown();
+		executorService.awaitTermination(30, TimeUnit.SECONDS);
+
+		return E.output.peekLast();
+	}
+
+}
+
+@Data
+@Slf4j
+class Amplifier {
+
+	final String name;
+	final Map<Long, Long> memory;
+	BlockingDeque<Long> input = new LinkedBlockingDeque<>();
+	BlockingDeque<Long> output = new LinkedBlockingDeque<>();
+
+	public Amplifier(String name, long[] program) {
+		this.name = name;
+		this.memory = convertToIndexedMemory(program);
+	}
+
+	void execute() throws InterruptedException {
+		log.info("{} Executing: {}", name, memory);
+		log.info("{} Input:     {}", name, input);
+		IntcodeComputer.execute(input, output, memory);
+		log.info("{} Output:    {}", name, output);
 	}
 }
