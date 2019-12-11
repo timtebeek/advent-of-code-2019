@@ -9,6 +9,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import com.github.timtebeek.day9.boost.IntcodeComputer;
 import com.google.common.collect.Collections2;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.github.timtebeek.day9.boost.IntcodeComputer.convertToIndexedMemory;
 
@@ -28,13 +29,13 @@ public class AmplifyThrust {
 	}
 
 	static long executeInSequence(List<Long> phases, long[] memory) throws InterruptedException {
-		Amplifier2 A = new Amplifier2(memory);
-		Amplifier2 B = new Amplifier2(memory);
-		Amplifier2 C = new Amplifier2(memory);
-		Amplifier2 D = new Amplifier2(memory);
-		Amplifier2 E = new Amplifier2(memory);
+		Amplifier2 A = new Amplifier2("A", memory);
+		Amplifier2 B = new Amplifier2("B", memory);
+		Amplifier2 C = new Amplifier2("C", memory);
+		Amplifier2 D = new Amplifier2("D", memory);
+		Amplifier2 E = new Amplifier2("E", memory);
 
-		// Wire up signals
+		// Wire up thrusters
 		B.input = A.output;
 		C.input = B.output;
 		D.input = C.output;
@@ -64,17 +65,23 @@ public class AmplifyThrust {
 }
 
 @Data
+@Slf4j
 class Amplifier2 {
 
+	final String name;
 	final Map<Long, Long> memory;
 	BlockingDeque<Long> input = new LinkedBlockingDeque<>();
 	BlockingDeque<Long> output = new LinkedBlockingDeque<>();
 
-	public Amplifier2(long[] program) {
-		memory = convertToIndexedMemory(program);
+	public Amplifier2(String name, long[] program) {
+		this.name = name;
+		this.memory = convertToIndexedMemory(program);
 	}
 
 	void execute() throws InterruptedException {
+		log.info("{} Executing: {}", name, memory);
+		log.info("{} Input:     {}", name, input);
 		IntcodeComputer.execute(input, output, memory);
+		log.info("{} Output:    {}", name, output);
 	}
 }

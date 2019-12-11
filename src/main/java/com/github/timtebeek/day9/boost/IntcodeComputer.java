@@ -23,7 +23,6 @@ public class IntcodeComputer {
 	}
 
 	public static Map<Long, Long> convertToIndexedMemory(long[] program) {
-		log.info("{}", program);
 		return Streams.zip(
 				LongStream.range(0, program.length).boxed(),
 				LongStream.of(program).boxed(),
@@ -43,8 +42,6 @@ public class IntcodeComputer {
 			instruction = String.valueOf(memory.get(pointer));
 			final int numberOfParameters;
 			boolean jumped = false;
-
-			log.info("{}", memory);
 
 			// Execute instructions
 			if (instruction.endsWith("1")) {
