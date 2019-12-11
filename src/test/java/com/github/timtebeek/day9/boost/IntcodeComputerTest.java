@@ -1,9 +1,11 @@
 package com.github.timtebeek.day9.boost;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static com.github.timtebeek.day9.boost.IntcodeComputer.convertToIndexedMemory;
@@ -11,7 +13,7 @@ import static com.github.timtebeek.day9.boost.IntcodeComputer.readParameterValue
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class IntcodeComputerTest {
-	long[] program = { 1102, 34463338, 34463338, 63, 1007, 63, 34463338, 63, 1005, 63, 53, 1101, 0, 3, 1000, 109,
+	long[] puzzleInput = { 1102, 34463338, 34463338, 63, 1007, 63, 34463338, 63, 1005, 63, 53, 1101, 0, 3, 1000, 109,
 			988, 209, 12, 9, 1000, 209, 6, 209, 3, 203, 0, 1008, 1000, 1, 63, 1005, 63, 65, 1008, 1000, 2, 63, 1005,
 			63, 904, 1008, 1000, 0, 63, 1005, 63, 58, 4, 25, 104, 0, 99, 4, 0, 104, 0, 99, 4, 17, 104, 0, 99, 0, 0,
 			1102, 32, 1, 1016, 1101, 38, 0, 1012, 1102, 1, 693, 1022, 1102, 1, 27, 1007, 1101, 0, 190, 1025, 1102,
@@ -98,60 +100,48 @@ public class IntcodeComputerTest {
 
 	@Test
 	void testProduce16Digits() throws InterruptedException {
-		long[] program = { 1102, 34915192, 34915192, 7, 4, 7, 99, 0 };
-		Map<Long, Long> memory = IntcodeComputer.convertToIndexedMemory(program);
-
-		BlockingDeque<Long> inputs = new LinkedBlockingDeque<>();
-		BlockingDeque<Long> outputs = new LinkedBlockingDeque<>();
-		IntcodeComputer.execute(inputs, outputs, memory);
-		Long peekLast = outputs.peekLast();
-		assertEquals(1219070632396864l, peekLast);
+		Computer computer = new Computer("", new long[] { 1102, 34915192, 34915192, 7, 4, 7, 99, 0 });
+		computer.execute();
+		assertEquals(1219070632396864l, computer.output.peekLast());
 	}
 
 	@Test
 	void testProduceLargeNumber() throws InterruptedException {
-		long[] program = { 104, 1125899906842624L, 99 };
-		Map<Long, Long> memory = IntcodeComputer.convertToIndexedMemory(program);
-
-		BlockingDeque<Long> inputs = new LinkedBlockingDeque<>();
-		BlockingDeque<Long> outputs = new LinkedBlockingDeque<>();
-		IntcodeComputer.execute(inputs, outputs, memory);
-		Long peekLast = outputs.peekLast();
-		assertEquals(1125899906842624L, peekLast);
+		Computer computer = new Computer("", new long[] { 104, 1125899906842624L, 99 });
+		computer.execute();
+		assertEquals(1125899906842624L, computer.output.peekLast());
 	}
 
 	@Test
-	void testProduceCopy() throws InterruptedException {
-		long[] program = { 109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99 };
-		Map<Long, Long> memory = IntcodeComputer.convertToIndexedMemory(program);
-
-		BlockingDeque<Long> inputs = new LinkedBlockingDeque<>();
-		BlockingDeque<Long> outputs = new LinkedBlockingDeque<>();
-		IntcodeComputer.execute(inputs, outputs, memory);
-		Long peekLast = outputs.peekLast();
-		assertEquals(99, peekLast);
+	void testProduceCopyQuine() throws InterruptedException {
+		long[] program = new long[] {
+				109, 1,
+				204, -1,
+				1001, 100, 1, 100,
+				1008, 100, 16, 101,
+				1006, 101, 0,
+				99 };
+		Computer computer = new Computer("", program);
+		computer.execute();
+		assertEquals(Arrays.toString(program), computer.output.toString());
 	}
 
 	@Test
 	void testSanityCheck() throws InterruptedException {
-		long[] program = {
+		Computer computer = new Computer("", new long[] {
 				1101, 3, 4, 5,
 				104, -1,
 				109, 5,
 				204, 0,
-				99 };
-		Map<Long, Long> memory = IntcodeComputer.convertToIndexedMemory(program);
-
-		BlockingDeque<Long> inputs = new LinkedBlockingDeque<>();
-		BlockingDeque<Long> outputs = new LinkedBlockingDeque<>();
-		IntcodeComputer.execute(inputs, outputs, memory);
-		Long peekLast = outputs.peekLast();
-		assertEquals(7, peekLast);
+				99 });
+		computer.execute();
+		assertEquals(7, computer.output.peekLast());
 	}
 
 	@Test
+	@Disabled
 	void testPart1() throws InterruptedException {
-		Map<Long, Long> memory = IntcodeComputer.convertToIndexedMemory(program);
+		Map<Long, Long> memory = IntcodeComputer.convertToIndexedMemory(puzzleInput);
 
 		BlockingDeque<Long> inputs = new LinkedBlockingDeque<>();
 		BlockingDeque<Long> outputs = new LinkedBlockingDeque<>();

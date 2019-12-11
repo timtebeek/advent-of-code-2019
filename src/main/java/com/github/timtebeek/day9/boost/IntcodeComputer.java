@@ -147,7 +147,7 @@ public class IntcodeComputer {
 
 		// Return value at referenced memory location
 		if (mode == 0) {
-			return memory.get(valueAtPointerPlusParameter);
+			return memory.getOrDefault(valueAtPointerPlusParameter, 0L);
 		}
 
 		// Return immediate value
