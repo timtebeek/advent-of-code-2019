@@ -117,4 +117,13 @@ public class SensorBoostTest {
 		assertEquals(3742852857L, computer.output.peekLast());
 	}
 
+	@Test
+	void testPart2() throws InterruptedException {
+		Computer computer = new Computer("", puzzleInput);
+		computer.input.putFirst(2L);
+		computer.execute();
+		assertEquals(1, computer.output.size());
+		assertEquals(73439L, computer.output.peekLast());
+	}
+
 }
