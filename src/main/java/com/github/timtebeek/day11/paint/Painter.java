@@ -54,9 +54,41 @@ public class Painter {
 
 			// Take step
 			position = position.move(orientation);
+
+			// Log outcome
+			log.info("Painted: {}, Turning: {}", newColor == 0 ? "black" : "white", direction == 0 ? "left" : "right");
+
+			paint(position, hull, orientation);
 		} while (!executorService.isTerminated());
 
 		return painted.size();
+	}
+
+	private static void paint(Point position, long[][] hull, Orientation orientation) {
+		for (int x = 0; x < 5; x++) {
+			for (int y = 0; y < 5; y++) {
+				Point at = new Point(x, y);
+				if (at.equals(position)) {
+					switch (orientation) {
+					case UP:
+						System.out.print('^');
+						break;
+					case DOWN:
+						System.out.print('v');
+						break;
+					case LEFT:
+						System.out.print('<');
+						break;
+					case RIGHT:
+						System.out.print('>');
+						break;
+					}
+				} else {
+					System.out.print(hull[at.getX()][at.getY()] == 0L ? '.' : '#');
+				}
+			}
+			System.out.println();
+		}
 	}
 
 }
