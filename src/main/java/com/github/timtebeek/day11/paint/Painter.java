@@ -38,6 +38,7 @@ public class Painter {
 		do {
 			// Log progress
 			log.info("Position: {}, Orientation: {}, Painted: {} - {}", position, orientation, painted.size(), painted);
+			paint(position, hull, orientation);
 
 			// Determine color
 			long currentColor = hull[position.getX()][position.getY()];
@@ -57,16 +58,14 @@ public class Painter {
 
 			// Log outcome
 			log.info("Painted: {}, Turning: {}", newColor == 0 ? "black" : "white", direction == 0 ? "left" : "right");
-
-			paint(position, hull, orientation);
 		} while (!executorService.isTerminated());
 
 		return painted.size();
 	}
 
 	private static void paint(Point position, long[][] hull, Orientation orientation) {
-		for (int x = 0; x < 5; x++) {
-			for (int y = 0; y < 5; y++) {
+		for (int y = 0; y < 5; y++) {
+			for (int x = 0; x < 5; x++) {
 				Point at = new Point(x, y);
 				if (at.equals(position)) {
 					switch (orientation) {
