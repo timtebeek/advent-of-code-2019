@@ -38,7 +38,7 @@ class PainterTest {
 	@Test
 	void testPart1() throws InterruptedException {
 		int panels = Painter.countPaintedPanels(puzzleInput);
-		assertEquals(-1, panels);
+		assertEquals(1909, panels);
 	}
 
 }

@@ -1,6 +1,8 @@
 package com.github.timtebeek.day11.paint;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.IntSummaryStatistics;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.github.timtebeek.day9.boost.Computer;
@@ -17,7 +19,6 @@ public class Painter {
 		Computer painter = new Computer("", program);
 
 		// Start painter in background
-		boolean running = true;
 		Thread thread = new Thread(() -> {
 			try {
 				painter.execute();
@@ -32,12 +33,10 @@ public class Painter {
 		Map<Point, Long> hull = new HashMap<>();
 		Point position = new Point(0, 0);
 		Orientation orientation = Orientation.UP;
-		Set<Point> painted = new HashSet<>();
 
 		do {
 			// Log progress
-			log.debug("Position: {}, Orientation: {}, Painted: {} - {}", position, orientation, painted.size(),
-					painted);
+			log.info("Position: {}, Orientation: {}, Painted: {}", position, orientation, hull.size());
 
 			// Determine color
 			long currentColor = hull.getOrDefault(position, 0L);
@@ -46,11 +45,6 @@ public class Painter {
 			// Apply color
 			long newColor = painter.output.takeFirst();
 			hull.put(position, newColor);
-
-			// Mark as painted
-			if (currentColor != newColor) {
-				painted.add(position);
-			}
 
 			// Determine direction
 			long direction = painter.output.takeFirst();
@@ -62,12 +56,10 @@ public class Painter {
 			// Log outcome
 			log.debug("Painted: {}, Turning: {}", newColor == 0 ? "black" : "white", direction == 0 ? "left" : "right");
 
-			//
-			log.info("Painted: {}, Hull: {}", painted.size(), hull.size());
-			paint(position, hull, orientation);
-		} while (running);
+			// paint(position, hull, orientation);
+		} while (thread.isAlive());
 
-		return painted.size();
+		return hull.size();
 	}
 
 	private static void paint(Point position, Map<Point, Long> hull, Orientation orientation) {
