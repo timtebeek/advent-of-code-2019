@@ -44,7 +44,7 @@ public class Painter {
 			painter.input.putLast(currentColor);
 
 			// Apply color
-			long newColor = painter.output.takeLast();
+			long newColor = painter.output.takeFirst();
 			hull.put(position, newColor);
 
 			// Mark as painted
@@ -53,7 +53,7 @@ public class Painter {
 			}
 
 			// Determine direction
-			long direction = painter.output.takeLast();
+			long direction = painter.output.takeFirst();
 			orientation = orientation.turn(direction);
 
 			// Take step
