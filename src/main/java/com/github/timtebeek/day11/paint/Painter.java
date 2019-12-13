@@ -1,13 +1,12 @@
 package com.github.timtebeek.day11.paint;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.github.timtebeek.day9.boost.Computer;
+import lombok.ToString;
 import lombok.Value;
+import lombok.With;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -18,36 +17,40 @@ public class Painter {
 		Computer painter = new Computer("", program);
 
 		// Start painter in background
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		executorService.submit(() -> {
+		boolean running = true;
+		Thread thread = new Thread(() -> {
 			try {
 				painter.execute();
 			} catch (InterruptedException e) {
+				log.info("Interrupted painter");
 				throw new IllegalStateException(e);
 			}
-		});
-		executorService.shutdown();
-		executorService.awaitTermination(1, TimeUnit.SECONDS);
+		}, "intcode computer");
+		thread.start();
 
 		// Initialize hull & painter positon
-		long[][] hull = new long[5][5];
-		Point position = new Point(2, 2);
+		Map<Point, Long> hull = new HashMap<>();
+		Point position = new Point(0, 0);
 		Orientation orientation = Orientation.UP;
 		Set<Point> painted = new HashSet<>();
 
 		do {
 			// Log progress
-			log.info("Position: {}, Orientation: {}, Painted: {} - {}", position, orientation, painted.size(), painted);
-			paint(position, hull, orientation);
+			log.debug("Position: {}, Orientation: {}, Painted: {} - {}", position, orientation, painted.size(),
+					painted);
 
 			// Determine color
-			long currentColor = hull[position.getX()][position.getY()];
+			long currentColor = hull.getOrDefault(position, 0L);
 			painter.input.putLast(currentColor);
 
 			// Apply color
 			long newColor = painter.output.takeLast();
-			hull[position.getX()][position.getY()] = newColor;
-			painted.add(position);
+			hull.put(position, newColor);
+
+			// Mark as painted
+			if (currentColor != newColor) {
+				painted.add(position);
+			}
 
 			// Determine direction
 			long direction = painter.output.takeLast();
@@ -57,43 +60,55 @@ public class Painter {
 			position = position.move(orientation);
 
 			// Log outcome
-			log.info("Painted: {}, Turning: {}", newColor == 0 ? "black" : "white", direction == 0 ? "left" : "right");
-		} while (!executorService.isTerminated());
+			log.debug("Painted: {}, Turning: {}", newColor == 0 ? "black" : "white", direction == 0 ? "left" : "right");
+
+			//
+			log.info("Painted: {}, Hull: {}", painted.size(), hull.size());
+			paint(position, hull, orientation);
+		} while (running);
 
 		return painted.size();
 	}
 
-	private static void paint(Point position, long[][] hull, Orientation orientation) {
-		for (int y = 0; y < 5; y++) {
-			for (int x = 0; x < 5; x++) {
+	private static void paint(Point position, Map<Point, Long> hull, Orientation orientation) {
+		IntSummaryStatistics xstats = hull.keySet().stream().collect(Collectors.summarizingInt(Point::getX));
+		IntSummaryStatistics ystats = hull.keySet().stream().collect(Collectors.summarizingInt(Point::getY));
+
+		StringBuilder stringBuilder = new StringBuilder(
+				(xstats.getMax() - xstats.getMin()) * (ystats.getMax() - ystats.getMin()));
+		for (int y = ystats.getMin(); y <= ystats.getMax(); y++) {
+			for (int x = xstats.getMin(); x <= xstats.getMax(); x++) {
 				Point at = new Point(x, y);
 				if (at.equals(position)) {
 					switch (orientation) {
 					case UP:
-						System.out.print('^');
+						stringBuilder.append('^');
 						break;
 					case DOWN:
-						System.out.print('v');
+						stringBuilder.append('v');
 						break;
 					case LEFT:
-						System.out.print('<');
+						stringBuilder.append('<');
 						break;
 					case RIGHT:
-						System.out.print('>');
+						stringBuilder.append('>');
 						break;
 					}
 				} else {
-					System.out.print(hull[at.getX()][at.getY()] == 0L ? '.' : '#');
+					stringBuilder.append(hull.getOrDefault(at, 0L) == 0L ? '.' : '#');
 				}
 			}
-			System.out.println();
+			stringBuilder.append('\n');
 		}
+		System.out.println(stringBuilder);
 	}
 
 }
 
 @Value
+@ToString(includeFieldNames = false)
 class Point {
+	@With
 	int x, y;
 
 	public Point move(Orientation orientation) {
@@ -108,20 +123,6 @@ class Point {
 			return withX(x + 1);
 		}
 		throw new IllegalArgumentException("Orientation " + orientation);
-	}
-
-	private Point withX(int newX) {
-		if (0 <= newX && newX < 5) {
-			return new Point(newX, y);
-		}
-		return this;
-	}
-
-	private Point withY(int newY) {
-		if (0 <= newY && newY < 5) {
-			return new Point(x, newY);
-		}
-		return this;
 	}
 }
 
@@ -149,12 +150,12 @@ enum Orientation {
 			switch (this) {
 			case UP:
 				return RIGHT;
-			case LEFT:
-				return UP;
-			case DOWN:
-				return LEFT;
 			case RIGHT:
 				return DOWN;
+			case DOWN:
+				return LEFT;
+			case LEFT:
+				return UP;
 			}
 		}
 		throw new IllegalArgumentException("Direction " + direction);
