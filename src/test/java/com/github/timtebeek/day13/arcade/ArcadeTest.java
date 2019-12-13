@@ -90,9 +90,9 @@ class ArcadeTest {
 			32, 3, 64, 96, 85, 19, 80, 56, 96, 65, 83, 12, 27, 64, 91, 14, 65, 52, 8, 49, 48, 437598 };
 
 	@Test
-	void test() throws InterruptedException {
-		int blocks = Arcade.play(program);
-		assertEquals(-1, blocks);
+	void testPart1() throws InterruptedException {
+		long blocks = Arcade.play(program);
+		assertEquals(344, blocks);
 	}
 
 }

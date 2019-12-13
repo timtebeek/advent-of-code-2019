@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Arcade {
 
-	public static int play(long[] program) throws InterruptedException {
+	public static long play(long[] program) throws InterruptedException {
 
 		Computer arcade = new Computer("arcade", program);
 
@@ -46,7 +46,7 @@ public class Arcade {
 
 		paint(screen);
 
-		return screen.size();
+		return screen.values().stream().filter(Tile.BLOCK::equals).count();
 	}
 
 	private static void paint(Map<Point, Tile> screen) {
