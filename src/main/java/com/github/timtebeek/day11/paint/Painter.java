@@ -3,6 +3,7 @@ package com.github.timtebeek.day11.paint;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.github.timtebeek.day9.boost.Computer;
@@ -37,14 +38,19 @@ public class Painter {
 
 		do {
 			// Log progress
-			log.info("Position: {}, Orientation: {}, Painted: {}", position, orientation, hull.size());
+			log.debug("Position: {}, Orientation: {}, Painted: {}", position, orientation, hull.size());
 
 			// Determine color
 			long currentColor = hull.getOrDefault(position, 0L);
 			painter.input.putLast(currentColor);
 
+			// Stop if there's no more input
+			Long newColor = painter.output.pollFirst(50, TimeUnit.MILLISECONDS);
+			if (newColor == null) {
+				break;
+			}
+
 			// Apply color
-			long newColor = painter.output.takeFirst();
 			hull.put(position, newColor);
 
 			// Determine direction
@@ -56,9 +62,9 @@ public class Painter {
 
 			// Log outcome
 			log.debug("Painted: {}, Turning: {}", newColor == 0 ? "black" : "white", direction == 0 ? "left" : "right");
+		} while (true);
 
-			paint(position, hull, orientation);
-		} while (thread.isAlive());
+		paint(position, hull, orientation);
 
 		return hull.size();
 	}
