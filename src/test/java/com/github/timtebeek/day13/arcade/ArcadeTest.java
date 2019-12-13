@@ -91,8 +91,14 @@ class ArcadeTest {
 
 	@Test
 	void testPart1() throws InterruptedException {
-		long blocks = Arcade.play(program);
+		long blocks = Arcade.render(program);
 		assertEquals(344, blocks);
+	}
+
+	@Test
+	void testPart2() throws InterruptedException {
+		long score = Arcade.play(program);
+		assertEquals(-1, score);
 	}
 
 }

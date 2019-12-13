@@ -24,7 +24,8 @@ public class Computer {
 	}
 
 	public void execute() throws InterruptedException {
-		log.info("{} Executing: {}", name, memory);
+		log.info("{} Executing: {} instructions", name, memory.size());
+		log.debug("{}", memory);
 		log.info("{} Input:     {}", name, input);
 		IntcodeComputer.execute(input, output, memory);
 		log.info("{} Output:    {}", name, output);
