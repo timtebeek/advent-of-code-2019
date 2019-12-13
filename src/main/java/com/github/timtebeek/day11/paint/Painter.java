@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Painter {
 
-	public static int countPaintedPanels(long[] program) throws InterruptedException {
+	public static int countPaintedPanels(long[] program, long initialPanel) throws InterruptedException {
 
 		Computer painter = new Computer("", program);
 
@@ -30,9 +30,10 @@ public class Painter {
 		thread.start();
 
 		// Initialize hull & painter positon
-		Map<Point, Long> hull = new HashMap<>();
 		Point position = new Point(0, 0);
 		Orientation orientation = Orientation.UP;
+		Map<Point, Long> hull = new HashMap<>();
+		hull.put(position, initialPanel);
 
 		do {
 			// Log progress
@@ -56,7 +57,7 @@ public class Painter {
 			// Log outcome
 			log.debug("Painted: {}, Turning: {}", newColor == 0 ? "black" : "white", direction == 0 ? "left" : "right");
 
-			// paint(position, hull, orientation);
+			paint(position, hull, orientation);
 		} while (thread.isAlive());
 
 		return hull.size();
