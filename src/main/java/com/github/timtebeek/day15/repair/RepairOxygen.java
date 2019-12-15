@@ -31,15 +31,15 @@ public class RepairOxygen {
 		thread.start();
 
 		// Find shortest path
-		shortestPathToOxygenSystem(remoteControl, new Screen(), Point.ZERO, Direction.NORTH);
+		mapPathToOxygenSystem(remoteControl, new Screen(), Point.ZERO, Direction.NORTH);
 		return -2;
 	}
 
-	private static void shortestPathToOxygenSystem(
-			RemoteControl remoteControl,
-			Screen screen,
-			Point droid,
-			Direction direction) throws InterruptedException {
+	private static void mapPathToOxygenSystem(
+			final RemoteControl remoteControl,
+			final Screen screen,
+			final Point droid,
+			final Direction direction) throws InterruptedException {
 
 		// Determine where we're going
 		Point newpos = droid.move(direction);
@@ -63,7 +63,7 @@ public class RepairOxygen {
 			screen.put(newpos, Tile.EMPTY);
 			// Traverse and compare; Which adds droid at new location
 			for (Direction newdir : Direction.values()) {
-				shortestPathToOxygenSystem(remoteControl, screen, newpos, newdir);
+				mapPathToOxygenSystem(remoteControl, screen, newpos, newdir);
 			}
 			break;
 		case FOUND:
@@ -122,7 +122,7 @@ class Point {
 	static final Point ZERO = new Point(0l, 0l);
 
 	@With
-	Long x, y;
+	private Long x, y;
 
 	Point move(Direction direction) {
 		switch (direction) {
