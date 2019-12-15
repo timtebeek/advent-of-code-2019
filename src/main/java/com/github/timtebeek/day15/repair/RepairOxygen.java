@@ -41,9 +41,6 @@ public class RepairOxygen {
 
 		long shortestFromHere = shortestSoFar;
 		for (Direction direction : Direction.values()) {
-			System.out.println("Trying " + direction);
-			System.out.println(screen);
-
 			// Determine where we're going
 			Point newpos = droid.move(direction);
 
@@ -51,7 +48,7 @@ public class RepairOxygen {
 			Tile atpos = screen.get(newpos);
 			if (atpos != null && atpos != Tile.OXYGEN) {
 				// Prevent walking in a circle
-				return Long.MAX_VALUE - 1;
+				continue;
 			}
 
 			// Try to take a step in direction
@@ -121,7 +118,7 @@ class Screen {
 				(int) ((xstats.getMax() - xstats.getMin()) * (ystats.getMax() - ystats.getMin())));
 		for (long y = ystats.getMin(); y <= ystats.getMax(); y++) {
 			for (long x = xstats.getMin(); x <= xstats.getMax(); x++) {
-				sb.append(screen.getOrDefault(new Point(x, y), Tile.EMPTY).pixel);
+				sb.append(screen.getOrDefault(new Point(x, y), Tile.UNKNOWN).pixel);
 			}
 			sb.append('\n');
 		}
@@ -158,7 +155,8 @@ enum Tile {
 	EMPTY('.'),
 	WALL('#'),
 	DROID('D'),
-	OXYGEN('X');
+	OXYGEN('X'),
+	UNKNOWN(' ');
 
 	final char pixel;
 
