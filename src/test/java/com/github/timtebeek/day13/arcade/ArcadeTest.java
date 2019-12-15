@@ -98,7 +98,7 @@ class ArcadeTest {
 	@Test
 	void testPart2() throws InterruptedException {
 		long score = Arcade.play(program);
-		assertEquals(-1, score);
+		assertEquals(17336, score);
 	}
 
 }

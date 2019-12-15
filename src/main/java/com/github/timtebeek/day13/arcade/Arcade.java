@@ -111,7 +111,9 @@ public class Arcade {
 					aim = estimateWherePaddleNeedsToBe(previousball, ball, screen, paddle);
 
 					// Determine action
-					if (aim.leftOf(paddle)) {
+					if (ball.equals(paddle.withY(paddle.getY() - 1))) {
+						joystick = Direction.NEUTRAL;
+					} else if (aim.leftOf(paddle)) {
 						joystick = Direction.LEFT;
 					} else if (aim.rightOf(paddle)) {
 						joystick = Direction.RIGHT;
@@ -153,9 +155,9 @@ public class Arcade {
 				.withX(currentball.getX() + (movingRight ? 1 : -1))
 				.withY(currentball.getY() + (movingDown ? 1 : -1));
 
-		// Correct for any bouncing off walls; ignoring blocks or ceiling
+		// Correct for any bouncing off walls and blocks
 		Tile tileatnext = screen.get(nextball);
-		if (tileatnext == Tile.WALL) {
+		if (tileatnext == Tile.WALL || tileatnext == Tile.BLOCK) {
 			nextball = nextball.withX(nextball.getX() - (movingRight ? -2 : 2));
 		}
 
@@ -169,14 +171,15 @@ public class Arcade {
 		StringBuilder sb = new StringBuilder((int) (maxx * maxy));
 		for (long y = 0; y <= maxy; y++) {
 			for (long x = 0; x <= maxx; x++) {
-				Point pixel = new Point(x, y);
-				if (pixel.equals(aim)) {
-					sb.append('*');
-				} else {
-					sb.append(screen.getOrDefault(pixel, Tile.EMPTY).pixel);
-				}
+				sb.append(screen.getOrDefault(new Point(x, y), Tile.EMPTY).pixel);
 			}
 			sb.append('\n');
+		}
+		if (aim != null) {
+			for (int i = 0; i < aim.getX(); i++) {
+				sb.append(' ');
+			}
+			sb.append("* ").append(aim + "\n");
 		}
 		sb.append("Score: ").append(score).append('\t').append(joystick);
 		System.out.println(sb);
