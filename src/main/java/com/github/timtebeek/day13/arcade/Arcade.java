@@ -70,7 +70,6 @@ public class Arcade {
 		Point paddle = Point.ZERO;
 		Point aim = Point.ZERO;
 		Long score = 0L;
-		long maxx = -1;
 
 		do {
 			// Poll first input; Or stop
@@ -79,11 +78,6 @@ public class Arcade {
 			Long tileid = arcade.output.pollFirst(50, TimeUnit.MILLISECONDS);
 			if (newx == null || newy == null || tileid == null) {
 				break;
-			}
-
-			// Determine maxx if not already set, so we can find the screen sides
-			if (newx > maxx) {
-				maxx = newx;
 			}
 
 			if (newx == -1 && newy == 0) {
@@ -99,12 +93,17 @@ public class Arcade {
 
 			// Act for special tiles
 			switch (tile) {
+			case EMPTY:
+				// No need to track empty space
+				screen.remove(position);
+				break;
 			case PADDLE:
+				// Update paddle position
 				paddle = position;
 				break;
 			case BALL:
 				// Aim & store new ball position
-				aim = estimateWhereBallMeetsPaddle(ball, position, paddle, maxx);
+				aim = estimateWherePaddleNeedsToBe(ball, position, screen, paddle);
 				ball = position;
 
 				// Determine action
@@ -119,44 +118,46 @@ public class Arcade {
 				// Take action
 				log.info("Moving: {}", joystick);
 				arcade.input.putLast(joystick.position());
+
+				// Paint with each new ball position
+				paint(screen, score, aim);
 				break;
 			default:
 				break;
-			}
-
-			// Paint each iteration
-			if (!paddle.equals(Point.ZERO)) {
-				paint(screen, maxx, score, aim);
 			}
 		} while (true);
 
 		return score;
 	}
 
-	private static Point estimateWhereBallMeetsPaddle(Point oldball, Point newball, Point paddle, long maxx) {
-		long yestimate = paddle.getY();
-		long newx = newball.getX();
-		long heightDifference = yestimate - newball.getY();
-
-		// Rough estimate of x
-		long xestimate;
-		if (oldball.leftOf(newball)) {
-			xestimate = newx - heightDifference;
-		} else {
-			xestimate = newx + heightDifference;
+	private static Point estimateWherePaddleNeedsToBe(Point previousball, Point currentball, Map<Point, Tile> screen,
+			Point paddle) {
+		// We've reached the point where we need to be; or the ceiling and just don't care
+		if (currentball.getY() == paddle.getY() || currentball.getY() == 0) {
+			return currentball;
 		}
 
-		// Bounds check
-		if (xestimate < 1) {
-			xestimate = 1 - xestimate;
-		} else if (maxx < xestimate) {
-			xestimate = maxx - (xestimate - maxx);
+		// Determine where we're going
+		boolean movingRight = previousball.leftOf(currentball);
+		boolean movingDown = previousball.above(currentball);
+
+		// Estimate next position
+		Point nextball = currentball
+				.withX(currentball.getX() + (movingRight ? 1 : -1))
+				.withY(currentball.getY() + (movingDown ? 1 : -1));
+
+		// Correct for any bouncing off walls; ignoring blocks or ceiling
+		Tile tileatnext = screen.get(nextball);
+		if (tileatnext == Tile.WALL) {
+			nextball = nextball.withX(nextball.getX() - (movingRight ? -2 : 2));
 		}
 
-		return new Point(xestimate, yestimate);
+		// Recurse
+		return estimateWherePaddleNeedsToBe(currentball, nextball, screen, paddle);
 	}
 
-	private static void paint(Map<Point, Tile> screen, long maxx, long score, Point aim) {
+	private static void paint(Map<Point, Tile> screen, long score, Point aim) {
+		long maxx = screen.keySet().stream().mapToLong(Point::getX).max().getAsLong();
 		long maxy = screen.keySet().stream().mapToLong(Point::getY).max().getAsLong();
 		StringBuilder sb = new StringBuilder((int) (maxx * maxy));
 		for (long y = 0; y <= maxy; y++) {
