@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
 import lombok.With;
+import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -29,26 +30,31 @@ public class RepairOxygen {
 		}, "IntcodeComputer");
 		thread.start();
 
-		// Initialize screen
-		return shortestPathToOxygenSystem(remoteControl, new HashMap<>(), Point.ZERO, Long.MAX_VALUE - 1);
+		// Find shortest path
+		return shortestPathToOxygenSystem(remoteControl, new Screen(), Point.ZERO, Long.MAX_VALUE - 1);
 	}
 
-	private static long shortestPathToOxygenSystem(RemoteControl remoteControl, Map<Point, Tile> screen, Point droid,
+	private static long shortestPathToOxygenSystem(RemoteControl remoteControl, Screen screen, Point droid,
 			long shortestSoFar) throws InterruptedException {
 		// Add droid to screen
 		screen.put(droid, Tile.DROID);
-		paint(screen);
 
 		long shortestFromHere = shortestSoFar;
 		for (Direction direction : Direction.values()) {
+			System.out.println("Trying " + direction);
+			System.out.println(screen);
+
 			// Determine where we're going
 			Point newpos = droid.move(direction);
-			if (screen.containsKey(newpos)) {
+
+			// Short circuit if known path
+			Tile atpos = screen.get(newpos);
+			if (atpos != null && atpos != Tile.OXYGEN) {
 				// Prevent walking in a circle
 				return Long.MAX_VALUE - 1;
 			}
 
-			// Take a step in direction
+			// Try to take a step in direction
 			Status status = remoteControl.move(direction);
 
 			// Interpret returned status
@@ -57,27 +63,26 @@ public class RepairOxygen {
 				screen.put(newpos, Tile.WALL);
 				break;
 			case MOVED:
-				// Update screen
+				// Remove droid from screen
 				screen.put(droid, Tile.EMPTY);
 
-				// Traverse and compare
+				// Traverse and compare; Which adds droid at new location
 				long shortestFromNext = 1 + shortestPathToOxygenSystem(remoteControl, screen, newpos, shortestSoFar);
 				if (shortestFromNext < shortestFromHere) {
 					shortestFromHere = shortestFromNext;
 				}
 
-				// Restore screen
+				// Restore droid on screen
 				if (screen.get(newpos) == Tile.DROID) {
 					screen.put(newpos, Tile.EMPTY);
 				}
 				screen.put(droid, Tile.DROID);
 				break;
 			case FOUND:
+				// Return a distance from here of zero
 				log.info("Found at: {}", newpos);
 				screen.put(newpos, Tile.OXYGEN);
-				shortestFromHere = 0;
-				paint(screen);
-				break;
+				return 0;
 			case STOPPED:
 				log.info("Stopped!");
 				break;
@@ -87,21 +92,6 @@ public class RepairOxygen {
 		}
 
 		return shortestFromHere;
-	}
-
-	private static void paint(Map<Point, Tile> screen) {
-		LongSummaryStatistics xstats = screen.keySet().stream().collect(Collectors.summarizingLong(Point::getX));
-		LongSummaryStatistics ystats = screen.keySet().stream().collect(Collectors.summarizingLong(Point::getY));
-
-		StringBuilder sb = new StringBuilder(
-				(int) ((xstats.getMax() - xstats.getMin()) * (ystats.getMax() - ystats.getMin())));
-		for (long y = ystats.getMin(); y <= ystats.getMax(); y++) {
-			for (long x = xstats.getMin(); x <= xstats.getMax(); x++) {
-				sb.append(screen.getOrDefault(new Point(x, y), Tile.EMPTY).pixel);
-			}
-			sb.append('\n');
-		}
-		System.out.println(sb);
 	}
 }
 
@@ -116,7 +106,27 @@ class RemoteControl extends Computer {
 		Long status = output.pollFirst(1, TimeUnit.SECONDS);
 		return Status.of(status);
 	}
+}
 
+class Screen {
+	@Delegate
+	private Map<Point, Tile> screen = new HashMap<>();
+
+	@Override
+	public String toString() {
+		LongSummaryStatistics xstats = screen.keySet().stream().collect(Collectors.summarizingLong(Point::getX));
+		LongSummaryStatistics ystats = screen.keySet().stream().collect(Collectors.summarizingLong(Point::getY));
+
+		StringBuilder sb = new StringBuilder(
+				(int) ((xstats.getMax() - xstats.getMin()) * (ystats.getMax() - ystats.getMin())));
+		for (long y = ystats.getMin(); y <= ystats.getMax(); y++) {
+			for (long x = xstats.getMin(); x <= xstats.getMax(); x++) {
+				sb.append(screen.getOrDefault(new Point(x, y), Tile.EMPTY).pixel);
+			}
+			sb.append('\n');
+		}
+		return sb.toString();
+	}
 }
 
 @Value
