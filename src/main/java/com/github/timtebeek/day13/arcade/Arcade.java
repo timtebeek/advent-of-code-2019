@@ -25,7 +25,7 @@ public class Arcade {
 				log.info("Interrupted painter");
 				throw new IllegalStateException(e);
 			}
-		}, "intcode computer");
+		}, "IntcodeComputer");
 		thread.start();
 
 		Map<Point, Tile> screen = new HashMap<>();
@@ -66,9 +66,9 @@ public class Arcade {
 		// Initialize screen & joystick
 		Map<Point, Tile> screen = new HashMap<>();
 		Direction joystick = Direction.NEUTRAL;
-		Point ball = Point.ZERO;
-		Point paddle = Point.ZERO;
-		Point aim = Point.ZERO;
+		Point ball = null;
+		Point paddle = null;
+		Point aim = null;
 		Long score = 0L;
 
 		do {
@@ -102,25 +102,28 @@ public class Arcade {
 				paddle = position;
 				break;
 			case BALL:
-				// Aim & store new ball position
-				aim = estimateWherePaddleNeedsToBe(ball, position, screen, paddle);
+				// Store previous and current ball position
+				Point previousball = ball;
 				ball = position;
 
-				// Determine action
-				if (aim.leftOf(paddle)) {
-					joystick = Direction.LEFT;
-				} else if (aim.rightOf(paddle)) {
-					joystick = Direction.RIGHT;
-				} else {
-					joystick = Direction.NEUTRAL;
+				if (paddle != null) {
+					// Aim
+					aim = estimateWherePaddleNeedsToBe(previousball, ball, screen, paddle);
+
+					// Determine action
+					if (aim.leftOf(paddle)) {
+						joystick = Direction.LEFT;
+					} else if (aim.rightOf(paddle)) {
+						joystick = Direction.RIGHT;
+					} else {
+						joystick = Direction.NEUTRAL;
+					}
 				}
+				// Paint with each new ball position
+				paint(screen, score, aim, joystick);
 
 				// Take action
-				log.info("Moving: {}", joystick);
 				arcade.input.putLast(joystick.position());
-
-				// Paint with each new ball position
-				paint(screen, score, aim);
 				break;
 			default:
 				break;
@@ -132,6 +135,10 @@ public class Arcade {
 
 	private static Point estimateWherePaddleNeedsToBe(Point previousball, Point currentball, Map<Point, Tile> screen,
 			Point paddle) {
+		if (previousball == null || paddle == null) {
+			return currentball;
+		}
+
 		// We've reached the point where we need to be; or the ceiling and just don't care
 		if (currentball.getY() == paddle.getY() || currentball.getY() == 0) {
 			return currentball;
@@ -156,7 +163,7 @@ public class Arcade {
 		return estimateWherePaddleNeedsToBe(currentball, nextball, screen, paddle);
 	}
 
-	private static void paint(Map<Point, Tile> screen, long score, Point aim) {
+	private static void paint(Map<Point, Tile> screen, long score, Point aim, Direction joystick) {
 		long maxx = screen.keySet().stream().mapToLong(Point::getX).max().getAsLong();
 		long maxy = screen.keySet().stream().mapToLong(Point::getY).max().getAsLong();
 		StringBuilder sb = new StringBuilder((int) (maxx * maxy));
@@ -171,7 +178,7 @@ public class Arcade {
 			}
 			sb.append('\n');
 		}
-		sb.append("Score: ").append(score);
+		sb.append("Score: ").append(score).append('\t').append(joystick);
 		System.out.println(sb);
 	}
 }
