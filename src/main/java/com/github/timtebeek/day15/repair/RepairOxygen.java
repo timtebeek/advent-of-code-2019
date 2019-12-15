@@ -1,6 +1,7 @@
 package com.github.timtebeek.day15.repair;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -36,11 +37,16 @@ public class RepairOxygen {
 
 	private static long shortestPathToOxygenSystem(RemoteControl remoteControl, Screen screen, Point droid,
 			long shortestSoFar) throws InterruptedException {
-		// Add droid to screen
-		screen.put(droid, Tile.DROID);
 
 		long shortestFromHere = shortestSoFar;
-		for (Direction direction : Direction.values()) {
+		for (Direction direction : List.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)) {
+			// Add droid to screen at original position
+			screen.put(droid, Tile.DROID);
+
+			// Debug output
+			System.out.println("Trying: " + direction);
+			System.out.println(screen);
+
 			// Determine where we're going
 			Point newpos = droid.move(direction);
 
@@ -60,20 +66,15 @@ public class RepairOxygen {
 				screen.put(newpos, Tile.WALL);
 				break;
 			case MOVED:
-				// Remove droid from screen
-				screen.put(droid, Tile.EMPTY);
-
 				// Traverse and compare; Which adds droid at new location
-				long shortestFromNext = 1 + shortestPathToOxygenSystem(remoteControl, screen, newpos, shortestSoFar);
+				long shortestFromNext = 1 + shortestPathToOxygenSystem(remoteControl, screen, newpos, shortestFromHere);
 				if (shortestFromNext < shortestFromHere) {
 					shortestFromHere = shortestFromNext;
 				}
-
 				// Restore droid on screen
 				if (screen.get(newpos) == Tile.DROID) {
 					screen.put(newpos, Tile.EMPTY);
 				}
-				screen.put(droid, Tile.DROID);
 				break;
 			case FOUND:
 				// Return a distance from here of zero
