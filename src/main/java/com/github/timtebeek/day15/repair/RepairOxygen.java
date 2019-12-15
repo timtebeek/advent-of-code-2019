@@ -56,7 +56,7 @@ public class RepairOxygen {
 
 		// Interpret returned status
 		switch (status) {
-		case WALL:
+		case BOOP:
 			screen.put(lookat, Tile.WALL);
 			break;
 		case MOVED:
@@ -77,7 +77,7 @@ public class RepairOxygen {
 			throw new IllegalArgumentException(status.name());
 		}
 
-		System.out.println("Found a " + status + " to my " + direction);
+		System.out.println(status + " to my " + direction);
 		System.out.println(screen);
 	}
 }
@@ -158,17 +158,17 @@ enum Tile {
 
 @RequiredArgsConstructor
 enum Direction {
-	EAST(4),
+	NORTH(1),
 	SOUTH(2),
 	WEST(3),
-	NORTH(1),
+	EAST(4),
 	;
 
 	final long command;
 }
 
 enum Status {
-	WALL,
+	BOOP,
 	MOVED,
 	FOUND,
 	STOPPED;
