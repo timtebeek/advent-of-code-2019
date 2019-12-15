@@ -1,7 +1,6 @@
 package com.github.timtebeek.day15.repair;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -32,64 +31,54 @@ public class RepairOxygen {
 		thread.start();
 
 		// Find shortest path
-		return shortestPathToOxygenSystem(remoteControl, new Screen(), Point.ZERO, Long.MAX_VALUE - 1);
+		shortestPathToOxygenSystem(remoteControl, new Screen(), Point.ZERO, Direction.NORTH);
+		return -2;
 	}
 
-	private static long shortestPathToOxygenSystem(RemoteControl remoteControl, Screen screen, Point droid,
-			long shortestSoFar) throws InterruptedException {
+	private static void shortestPathToOxygenSystem(
+			RemoteControl remoteControl,
+			Screen screen,
+			Point droid,
+			Direction direction) throws InterruptedException {
 
-		long shortestFromHere = shortestSoFar;
-		for (Direction direction : List.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)) {
-			// Add droid to screen at original position
-			screen.put(droid, Tile.DROID);
+		// Determine where we're going
+		Point newpos = droid.move(direction);
 
-			// Debug output
-			System.out.println("Trying: " + direction);
-			System.out.println(screen);
-
-			// Determine where we're going
-			Point newpos = droid.move(direction);
-
-			// Short circuit if known path
-			Tile atpos = screen.get(newpos);
-			if (atpos != null && atpos != Tile.OXYGEN) {
-				// Prevent walking in a circle
-				continue;
-			}
-
-			// Try to take a step in direction
-			Status status = remoteControl.move(direction);
-
-			// Interpret returned status
-			switch (status) {
-			case WALL:
-				screen.put(newpos, Tile.WALL);
-				break;
-			case MOVED:
-				// Traverse and compare; Which adds droid at new location
-				long shortestFromNext = 1 + shortestPathToOxygenSystem(remoteControl, screen, newpos, shortestFromHere);
-				if (shortestFromNext < shortestFromHere) {
-					shortestFromHere = shortestFromNext;
-				}
-				// Restore droid on screen
-				if (screen.get(newpos) == Tile.DROID) {
-					screen.put(newpos, Tile.EMPTY);
-				}
-				break;
-			case FOUND:
-				// Return a distance from here of zero
-				log.info("Found at: {}", newpos);
-				screen.put(newpos, Tile.OXYGEN);
-				return 0;
-			case STOPPED:
-				log.info("Stopped!");
-				break;
-			default:
-				throw new IllegalArgumentException(status.name());
-			}
+		// Short circuit if known path
+		Tile atpos = screen.get(newpos);
+		if (atpos != null && atpos != Tile.OXYGEN) {
+			// Prevent walking in a circle
+			return;
 		}
 
-		return shortestFromHere;
+		// Try to take a step in direction
+		Status status = remoteControl.move(direction);
+
+		// Interpret returned status
+		switch (status) {
+		case WALL:
+			screen.put(newpos, Tile.WALL);
+			break;
+		case MOVED:
+			screen.put(newpos, Tile.EMPTY);
+			// Traverse and compare; Which adds droid at new location
+			for (Direction newdir : Direction.values()) {
+				shortestPathToOxygenSystem(remoteControl, screen, newpos, newdir);
+			}
+			break;
+		case FOUND:
+			screen.put(newpos, Tile.OXYGEN);
+			log.info("Found at: {} ", newpos);
+			break;
+		case STOPPED:
+			log.info("Stopped!");
+			break;
+		default:
+			throw new IllegalArgumentException(status.name());
+		}
+
+		System.out.println("Found a " + status + " to my " + direction);
+		System.out.println(screen);
 	}
 }
 
@@ -100,7 +89,7 @@ class RemoteControl extends Computer {
 	}
 
 	public Status move(Direction direction) throws InterruptedException {
-		input.putLast((long) direction.ordinal() + 1);
+		input.putLast(direction.command);
 		Long status = output.pollFirst(1, TimeUnit.SECONDS);
 		return Status.of(status);
 	}
@@ -160,19 +149,16 @@ enum Tile {
 	UNKNOWN(' ');
 
 	final char pixel;
-
-	private static final Tile[] vals = values();
-
-	static Tile of(Long val) {
-		return vals[val.intValue()];
-	}
 }
 
+@RequiredArgsConstructor
 enum Direction {
-	NORTH,
-	SOUTH,
-	WEST,
-	EAST;
+	NORTH(1),
+	EAST(4),
+	SOUTH(2),
+	WEST(3);
+
+	final long command;
 }
 
 enum Status {
