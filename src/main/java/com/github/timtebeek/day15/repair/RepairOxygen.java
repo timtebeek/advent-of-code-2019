@@ -42,10 +42,10 @@ public class RepairOxygen {
 			final Direction direction) throws InterruptedException {
 
 		// Determine where we're going
-		Point newpos = droid.move(direction);
+		Point lookat = droid.move(direction);
 
 		// Short circuit if known path
-		Tile atpos = screen.get(newpos);
+		Tile atpos = screen.get(lookat);
 		if (atpos != null && atpos != Tile.OXYGEN) {
 			// Prevent walking in a circle
 			return;
@@ -57,18 +57,18 @@ public class RepairOxygen {
 		// Interpret returned status
 		switch (status) {
 		case WALL:
-			screen.put(newpos, Tile.WALL);
+			screen.put(lookat, Tile.WALL);
 			break;
 		case MOVED:
-			screen.put(newpos, Tile.EMPTY);
-			// Traverse and compare; Which adds droid at new location
+			screen.put(lookat, Tile.EMPTY);
+			// Continue mapping path
 			for (Direction newdir : Direction.values()) {
-				mapPathToOxygenSystem(remoteControl, screen, newpos, newdir);
+				mapPathToOxygenSystem(remoteControl, screen, lookat, newdir);
 			}
 			break;
 		case FOUND:
-			screen.put(newpos, Tile.OXYGEN);
-			log.info("Found at: {} ", newpos);
+			screen.put(lookat, Tile.OXYGEN);
+			log.info("Found at: {} ", lookat);
 			break;
 		case STOPPED:
 			log.info("Stopped!");
@@ -108,7 +108,12 @@ class Screen {
 				(int) ((xstats.getMax() - xstats.getMin()) * (ystats.getMax() - ystats.getMin())));
 		for (long y = ystats.getMin(); y <= ystats.getMax(); y++) {
 			for (long x = xstats.getMin(); x <= xstats.getMax(); x++) {
-				sb.append(screen.getOrDefault(new Point(x, y), Tile.UNKNOWN).pixel);
+				Point point = new Point(x, y);
+				if (point.equals(Point.ZERO)) {
+					sb.append('*');
+				} else {
+					sb.append(screen.getOrDefault(point, Tile.UNKNOWN).pixel);
+				}
 			}
 			sb.append('\n');
 		}
@@ -153,10 +158,11 @@ enum Tile {
 
 @RequiredArgsConstructor
 enum Direction {
-	NORTH(1),
 	EAST(4),
 	SOUTH(2),
-	WEST(3);
+	WEST(3),
+	NORTH(1),
+	;
 
 	final long command;
 }
